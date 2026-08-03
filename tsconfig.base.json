@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ax-analytics/shared": ["packages/shared/dist/index.d.ts", "packages/shared/src/index.ts"],
+      "ax-analytics/client": ["packages/client/dist/index.d.ts", "packages/client/src/index.ts"]
+    }
+  }
+}

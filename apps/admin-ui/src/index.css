@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: #07030d;
+  background-image: 
+    radial-gradient(at 15% 15%, rgba(168, 85, 247, 0.18) 0px, transparent 45%),
+    radial-gradient(at 85% 15%, rgba(236, 72, 153, 0.15) 0px, transparent 45%),
+    radial-gradient(at 50% 85%, rgba(124, 58, 237, 0.18) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: #f3e8ff;
+  min-height: 100vh;
+}
+
+h1, h2, h3, .font-heading {
+  font-family: 'Outfit', sans-serif;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Neon Purple Glassmorphism Panels */
+.neon-panel {
+  background: rgba(19, 10, 36, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(236, 72, 153, 0.15);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neon-panel:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(168, 85, 247, 0.25);
+}
+
+.neon-glow-btn {
+  background: linear-gradient(135deg, #7c3aed 0%, #d946ef 100%);
+  color: white;
+  font-weight: 700;
+  padding: 0.65rem 1.35rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neon-glow-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(217, 70, 239, 0.6);
+}
+
+/* Custom AG Grid Dark Theme Styling */
+.ag-theme-alpine-dark {
+  --ag-background-color: rgba(15, 8, 30, 0.85) !important;
+  --ag-header-background-color: rgba(28, 14, 53, 0.9) !important;
+  --ag-border-color: rgba(168, 85, 247, 0.2) !important;
+  --ag-row-hover-color: rgba(168, 85, 247, 0.15) !important;
+  --ag-foreground-color: #f3e8ff !important;
+  --ag-header-foreground-color: #c084fc !important;
+  --ag-font-family: 'Plus Jakarta Sans', sans-serif !important;
+  --ag-font-size: 12px !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #07030d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2e184b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
