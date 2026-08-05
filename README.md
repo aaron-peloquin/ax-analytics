@@ -8,10 +8,27 @@
 
 **AX Analytics** is a monorepo analytics backend + admin dashboard purpose-built for **agentic AI applications**. If you're building LLM-powered agents that invoke tools, make decisions, and run multi-step sessions, this platform gives you full visibility into what they're doing, how fast, and at what cost.
 
+<p align="center">
+  <a href="files/resolved-agent-runs.png">
+    <img src="files/resolved-agent-runs.png" width="49%" alt="resolved agent runs showing cost vs speed scatter plot of completed agent sessions" />
+  </a>
+  <a href="files/tool-inspector.png">
+    <img src="files/tool-inspector.png" width="49%" alt="tool inspector showing a sunburst of tool parameter names, with detailed grid value breakdown below" />
+  </a>
+</p>
+<p align="center">
+  <a href="files/agent-trajectory-flow-1.png">
+    <img src="files/agent-trajectory-flow-1.png" width="49%" alt="agent trajectory flow showing the flow from a tool to change a player's hp to another tool that creates a note" />
+  </a>
+  <a href="files/agent-trajectory-flow-2.png">
+    <img src="files/agent-trajectory-flow-2.png" width="49%" alt="agent trajectory flow highlighting a tool, showing what various OTEL traces said the previous and next tools typically were" />
+  </a>
+</p>
+
 ### Core Capabilities
 
 | Feature | Description |
-|---|---|
+| --- | --- |
 | 🔭 **Telemetry Ingestion** | Lightweight HTTP `POST` endpoint to ingest any tool call, page view, or agent event |
 | 🧭 **Tool Request Flows** | Sankey-style flow diagrams showing agent tool-call trajectories |
 | 🔍 **Tool Inspector** | Sunburst hub of parameter names/values with grouped AG Grid value breakdown |
@@ -42,7 +59,7 @@ ax-analytics/
 ### Storage Engines
 
 | Engine | Purpose | Port |
-|---|---|---|
+| --- | --- | --- |
 | **PostgreSQL + pgvector** | Applications, sticky A/B experiment assignments, session feedback | `5434` |
 | **ClickHouse** | Time-series telemetry event store (high-throughput ingestion) | `8124` (HTTP), `9005` (native) |
 
@@ -54,6 +71,7 @@ ax-analytics/
 - **Docker Desktop** (for database containers)
 
 Install pnpm if you don't have it:
+
 ```bash
 npm install -g pnpm
 ```
@@ -77,6 +95,7 @@ docker compose up -d
 ```
 
 This starts:
+
 - **PostgreSQL** (`pgvector/pgvector:pg16`) on port `5434`
 - **ClickHouse** (`24.3-alpine`) on port `8124`
 
@@ -89,9 +108,9 @@ pnpm dev
 This starts all three projects in parallel via Nx:
 
 | Service | URL | Description |
-|---|---|---|
-| 🖥️ **Admin Dashboard** | http://localhost:3300 | React + Vite analytics UI |
-| ⚡ **Telemetry Server** | http://localhost:4400 | Express.js HTTP API |
+| --- | --- | --- |
+| 🖥️ **Admin Dashboard** | <http://localhost:3300> | React + Vite analytics UI |
+| ⚡ **Telemetry Server** | <http://localhost:4400> | Express.js HTTP API |
 
 The Admin UI proxies all `/v1` API calls to the server automatically, so you only ever open `localhost:3300`.
 
@@ -102,7 +121,7 @@ The Admin UI proxies all `/v1` API calls to the server automatically, so you onl
 All commands run from the **monorepo root**:
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `pnpm dev` | Start all apps in parallel (server + admin UI) |
 | `pnpm build` | Build all packages and apps for production |
 | `pnpm test` | Run all test suites across the monorepo |
@@ -136,11 +155,12 @@ curl -X POST http://localhost:4400/v1/telemetry/event \
 ```
 
 **Response:**
+
 ```json
 { "status": "queued" }
 ```
 
-Now open the dashboard at **http://localhost:3300** to see your data appear.
+Now open the dashboard at **<http://localhost:3300>** to see your data appear.
 
 ---
 
@@ -149,14 +169,14 @@ Now open the dashboard at **http://localhost:3300** to see your data appear.
 ### Telemetry Ingestion
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/v1/telemetry/event` | Ingest a telemetry event (tool call, page view, agent turn) |
 | `GET` | `/v1/analytics/summary` | Fetch aggregate summary (total events, total cost) |
 
 ### A/B Experiments
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/v1/experiments/variant` | Get a sticky, deterministic variant assignment for a user |
 | `POST` | `/v1/experiments/reset-assignments` | Reset all variant assignments for an experiment key |
 
@@ -169,7 +189,7 @@ Now open the dashboard at **http://localhost:3300** to see your data appear.
 ### Admin
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/v1/admin/reset-db` | Wipe all in-memory telemetry events, feedback, and sticky assignments |
 | `GET` | `/health` | Server health check |
 
@@ -184,7 +204,7 @@ The shared types package exports **`_v1`** contracts for integrating from any la
 ## Dashboard Pages
 
 | Page | Route | Description |
-|---|---|---|
+| --- | --- | --- |
 | Traffic Overview | `#overview` | Real-time event feed, error rates, latency histogram |
 | Tool Inspector | `#sunburst` | Sunburst param hub + AG Grid value breakdown table |
 | Tool Request Flows | `#transitions` | Agent flow diagram (tool call trajectories) |
@@ -199,7 +219,7 @@ The shared types package exports **`_v1`** contracts for integrating from any la
 ## Environment Variables (Server)
 
 | Variable | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `PORT` | `4400` | HTTP server port |
 | `POSTGRES_URL` | *(memory mode)* | PostgreSQL connection string |
 | `CLICKHOUSE_HOST` | `http://localhost:8124` | ClickHouse HTTP interface URL |
@@ -211,10 +231,13 @@ The shared types package exports **`_v1`** contracts for integrating from any la
 
 - **Hot reload** is enabled for both apps in `pnpm dev`.
 - **Smoke tests** can be run against a live server:
+
   ```bash
   pnpm --filter ax-analytics-server smoke
   ```
+
 - **Wipe test data** between integration test runs:
+
   ```bash
   pnpm resetdb
   ```
