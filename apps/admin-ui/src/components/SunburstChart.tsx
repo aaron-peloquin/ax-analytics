@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { SunburstNode } from '../utils/buildSunburstData';
 
@@ -9,18 +9,7 @@ export interface SunburstChartProps {
 }
 
 export function SunburstChart({ data, title, onNodeClick }: SunburstChartProps): React.ReactElement {
-  if (data.length === 0) {
-    return (
-      <div className="w-full h-80 flex flex-col items-center justify-center p-6 bg-[#100720]/60 rounded-2xl border border-purple-900/40 text-center space-y-2">
-        <p className="text-sm font-bold text-white font-heading">No Parameter Data Available for Selected Tool</p>
-        <p className="text-xs text-purple-200 font-medium max-w-sm">
-          Ingest agent tool call telemetry with JSON parameters to build the Sunburst inner and outer parameter hubs.
-        </p>
-      </div>
-    );
-  }
-
-  const option = {
+  const option = useMemo(() => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
@@ -82,17 +71,26 @@ export function SunburstChart({ data, title, onNodeClick }: SunburstChartProps):
         }
       ]
     }
-  };
+  }), [data]);
+
+  if (data.length === 0) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center p-6 bg-[#100720]/60 rounded-2xl border border-purple-900/40 text-center space-y-2">
+        <p className="text-sm font-bold text-white font-heading">No Parameter Data Available for Selected Tool</p>
+        <p className="text-xs text-purple-200 font-medium max-w-sm">
+          Ingest agent tool call telemetry with JSON parameters to build the Sunburst inner and outer parameter hubs.
+        </p>
+      </div>
+    );
+  }
 
   const onChartClick = (params: { name: string; treePathInfo?: { name: string }[] }) => {
     if (!onNodeClick) return;
-    // Extract root paramName from treePathInfo if clicked on outer value hub
     const rootParam = params.treePathInfo && params.treePathInfo.length > 1
       ? params.treePathInfo[1]?.name
       : params.name;
     
     if (rootParam) {
-      // Clean up percentage labels e.g. "laptop (60%)"
       const cleanParam = rootParam.replace(/\s*\(\d+%\)$/, '').trim();
       onNodeClick(cleanParam);
     }
@@ -110,6 +108,7 @@ export function SunburstChart({ data, title, onNodeClick }: SunburstChartProps):
       <div className="w-full h-80 bg-[#100720]/60 rounded-2xl border border-purple-900/40 p-2">
         <ReactECharts
           option={option}
+          lazyUpdate={true}
           style={{ height: '100%', width: '100%' }}
           onEvents={{ click: onChartClick }}
         />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TelemetryEvent, SessionFeedbackRecord } from '@ax-analytics/shared';
+import { isEqualAnalyticsSummary } from '../utils/isEqualAnalyticsSummary';
 
 export interface AnalyticsSummary {
   readonly totalEvents: number;
@@ -10,7 +11,7 @@ export interface AnalyticsSummary {
   readonly feedback: SessionFeedbackRecord[];
 }
 
-export function useAnalyticsData(pollIntervalMs: number = 3000) {
+export function useAnalyticsData(pollIntervalMs: number = 300000) {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,8 @@ export function useAnalyticsData(pollIntervalMs: number = 3000) {
         throw new Error(`HTTP error ${response.status}`);
       }
       const json: AnalyticsSummary = await response.json();
-      setData(json);
+      
+      setData(prevData => (isEqualAnalyticsSummary(prevData, json) ? prevData : json));
       setError(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch analytics');

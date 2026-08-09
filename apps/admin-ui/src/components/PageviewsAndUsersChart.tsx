@@ -1,32 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { TelemetryEvent } from '@ax-analytics/shared';
+import { groupEventsByTimeInterval, TimeGroupingInterval } from '../utils/groupEventsByTimeInterval';
 
 export interface PageviewsAndUsersChartProps {
   readonly events: readonly TelemetryEvent[];
+  readonly timeGrouping?: TimeGroupingInterval;
 }
 
-export function PageviewsAndUsersChart({ events }: PageviewsAndUsersChartProps): React.ReactElement {
-  const timeBuckets: Record<string, { time: string; pageviews: number; userIds: Set<string> }> = {};
+export function PageviewsAndUsersChart({ events, timeGrouping = '5m' }: PageviewsAndUsersChartProps): React.ReactElement {
+  const grouped = useMemo(
+    () => groupEventsByTimeInterval(events, timeGrouping),
+    [events, timeGrouping]
+  );
 
-  for (const evt of events) {
-    const timeStr = evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
-    if (!timeBuckets[timeStr]) {
-      timeBuckets[timeStr] = { time: timeStr, pageviews: 0, userIds: new Set() };
-    }
-    if (evt.eventType === 'page_view') {
-      timeBuckets[timeStr].pageviews += 1;
-    }
-    if (evt.entityId) {
-      timeBuckets[timeStr].userIds.add(evt.entityId);
-    }
-  }
-
-  const times = Object.keys(timeBuckets);
-  const pageviewData = Object.values(timeBuckets).map(b => b.pageviews);
-  const uniqueUsersData = Object.values(timeBuckets).map(b => b.userIds.size);
-
-  const option = {
+  const option = useMemo(() => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
@@ -42,7 +30,7 @@ export function PageviewsAndUsersChart({ events }: PageviewsAndUsersChartProps):
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: times.length > 0 ? times : ['No Events Ingested'],
+      data: grouped.times.length > 0 ? grouped.times : ['No Events Ingested'],
       axisLine: { lineStyle: { color: '#4c1d95' } },
       axisLabel: { color: '#c084fc' }
     },
@@ -57,7 +45,7 @@ export function PageviewsAndUsersChart({ events }: PageviewsAndUsersChartProps):
         name: 'Total Pageviews',
         type: 'line',
         smooth: true,
-        data: pageviewData.length > 0 ? pageviewData : [0],
+        data: grouped.pageviewData.length > 0 ? grouped.pageviewData : [0],
         itemStyle: { color: '#38bdf8' },
         lineStyle: { width: 3, shadowColor: 'rgba(56, 189, 248, 0.5)', shadowBlur: 10 },
         areaStyle: {
@@ -75,7 +63,7 @@ export function PageviewsAndUsersChart({ events }: PageviewsAndUsersChartProps):
         name: 'Unique User IDs',
         type: 'line',
         smooth: true,
-        data: uniqueUsersData.length > 0 ? uniqueUsersData : [0],
+        data: grouped.uniqueUsersData.length > 0 ? grouped.uniqueUsersData : [0],
         itemStyle: { color: '#34d399' },
         lineStyle: { width: 3, shadowColor: 'rgba(52, 211, 153, 0.5)', shadowBlur: 10 },
         areaStyle: {
@@ -90,7 +78,7 @@ export function PageviewsAndUsersChart({ events }: PageviewsAndUsersChartProps):
         }
       }
     ]
-  };
+  }), [grouped]);
 
   return (
     <div className="neon-panel p-6 space-y-4">
@@ -100,7 +88,7 @@ export function PageviewsAndUsersChart({ events }: PageviewsAndUsersChartProps):
       </div>
 
       <div className="w-full h-72">
-        <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+        <ReactECharts option={option} lazyUpdate={true} style={{ height: '100%', width: '100%' }} />
       </div>
     </div>
   );

@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Activity, Zap, Clock, Users, Eye } from 'lucide-react';
 import { TelemetryEvent } from '@ax-analytics/shared';
 import { PageviewsAndUsersChart } from './PageviewsAndUsersChart';
+import { TimeGroupingDropdown } from './TimeGroupingDropdown';
+import { groupEventsByTimeInterval, TimeGroupingInterval } from '../utils/groupEventsByTimeInterval';
 
 export interface TrafficOverviewProps {
   readonly events: readonly TelemetryEvent[];
+  readonly timeGrouping?: TimeGroupingInterval;
+  readonly onTimeGroupingChange?: (interval: TimeGroupingInterval) => void;
 }
 
-export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactElement {
+export function TrafficOverview({
+  events,
+  timeGrouping = '5m',
+  onTimeGroupingChange
+}: TrafficOverviewProps): React.ReactElement {
   const toolCallCount = events.filter(e => e.eventType === 'tool_call').length;
-  const webClickCount = events.filter(e => e.eventType === 'button_click' || e.eventType === 'web_event' || e.eventType === 'page_view').length;
   
   const uniqueUsersCount = new Set(
     events
@@ -22,21 +29,12 @@ export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactEl
     ? Math.round(events.reduce((acc, e) => acc + (e.executionTimeMs || 0), 0) / events.length)
     : 0;
 
-  const timeBuckets: Record<string, { time: string; toolCalls: number; webClicks: number }> = {};
-  for (const evt of events) {
-    const timeStr = evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
-    if (!timeBuckets[timeStr]) {
-      timeBuckets[timeStr] = { time: timeStr, toolCalls: 0, webClicks: 0 };
-    }
-    if (evt.eventType === 'tool_call') timeBuckets[timeStr].toolCalls += 1;
-    else timeBuckets[timeStr].webClicks += 1;
-  }
+  const grouped = useMemo(
+    () => groupEventsByTimeInterval(events, timeGrouping),
+    [events, timeGrouping]
+  );
 
-  const times = Object.keys(timeBuckets);
-  const toolData = Object.values(timeBuckets).map(b => b.toolCalls);
-  const clickData = Object.values(timeBuckets).map(b => b.webClicks);
-
-  const echartsOption = {
+  const echartsOption = useMemo(() => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
@@ -52,7 +50,7 @@ export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactEl
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: times.length > 0 ? times : ['No Events Ingested'],
+      data: grouped.times.length > 0 ? grouped.times : ['No Events Ingested'],
       axisLine: { lineStyle: { color: '#6b21a8' } },
       axisLabel: { color: '#e9d5ff', fontWeight: 'bold' }
     },
@@ -67,7 +65,7 @@ export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactEl
         name: 'Agent Tool Calls',
         type: 'line',
         smooth: true,
-        data: toolData.length > 0 ? toolData : [0],
+        data: grouped.toolData.length > 0 ? grouped.toolData : [0],
         itemStyle: { color: '#d946ef' },
         lineStyle: { width: 3, shadowColor: 'rgba(217, 70, 239, 0.5)', shadowBlur: 10 },
         areaStyle: {
@@ -85,7 +83,7 @@ export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactEl
         name: 'Human Web Clicks',
         type: 'line',
         smooth: true,
-        data: clickData.length > 0 ? clickData : [0],
+        data: grouped.clickData.length > 0 ? grouped.clickData : [0],
         itemStyle: { color: '#06b6d4' },
         lineStyle: { width: 3, shadowColor: 'rgba(6, 182, 212, 0.5)', shadowBlur: 10 },
         areaStyle: {
@@ -100,7 +98,7 @@ export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactEl
         }
       }
     ]
-  };
+  }), [grouped]);
 
   return (
     <div className="space-y-6">
@@ -153,16 +151,22 @@ export function TrafficOverview({ events }: TrafficOverviewProps): React.ReactEl
         </div>
       </div>
 
-      <PageviewsAndUsersChart events={events} />
+      <PageviewsAndUsersChart events={events} timeGrouping={timeGrouping} />
 
       <div className="neon-panel p-6 space-y-4">
-        <div>
-          <h2 className="text-xl font-bold text-white font-heading">Real-Time Event Ingestion Stream</h2>
-          <p className="text-xs text-purple-200 font-medium mt-0.5">Live time-series telemetry events streaming in real time</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-white font-heading">Real-Time Event Ingestion Stream</h2>
+            <p className="text-xs text-purple-200 font-medium mt-0.5">Live time-series telemetry events streaming in real time</p>
+          </div>
+
+          {onTimeGroupingChange && (
+            <TimeGroupingDropdown interval={timeGrouping} onChange={onTimeGroupingChange} />
+          )}
         </div>
 
         <div className="w-full h-80">
-          <ReactECharts option={echartsOption} style={{ height: '100%', width: '100%' }} />
+          <ReactECharts option={echartsOption} lazyUpdate={true} style={{ height: '100%', width: '100%' }} />
         </div>
       </div>
     </div>

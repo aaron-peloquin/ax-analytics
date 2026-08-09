@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { TelemetryEvent } from '@ax-analytics/shared';
 import { ScatterChart } from 'lucide-react';
@@ -28,130 +28,132 @@ export function CostPerOutcomeChart({ totalCost, events }: CostPerOutcomeChartPr
     ? (totalExecutionMs / successCount / 1000).toFixed(2) 
     : (totalExecutionMs / (events.length || 1) / 1000).toFixed(2);
 
-  // Group events by sessionId to aggregate whole agent runs
-  const sessionMap: Record<string, {
-    sessionId: string;
-    entityId: string;
-    totalCost: number;
-    totalExecutionMs: number;
-    assignedVariant: string;
-    hasFailure: boolean;
-  }> = {};
+  const { sessionRuns, option } = useMemo(() => {
+    const sessionMap: Record<string, {
+      sessionId: string;
+      entityId: string;
+      totalCost: number;
+      totalExecutionMs: number;
+      assignedVariant: string;
+      hasFailure: boolean;
+    }> = {};
 
-  for (const evt of events) {
-    const sId = evt.sessionId || 'default_session';
-    if (!sessionMap[sId]) {
-      sessionMap[sId] = {
-        sessionId: sId,
-        entityId: evt.entityId || 'unknown_entity',
-        totalCost: 0,
-        totalExecutionMs: 0,
-        assignedVariant: evt.assignedVariant || 'A',
-        hasFailure: false
-      };
-    }
-    sessionMap[sId].totalCost += evt.tokenCost || 0;
-    sessionMap[sId].totalExecutionMs += evt.executionTimeMs || 0;
-    if (evt.assignedVariant) {
-      sessionMap[sId].assignedVariant = evt.assignedVariant;
-    }
-    if (evt.statusCode && evt.statusCode !== 'SUCCESS') {
-      sessionMap[sId].hasFailure = true;
-    }
-  }
-
-  const sessionRuns: SessionRunMetrics[] = Object.values(sessionMap).map(s => ({
-    sessionId: s.sessionId,
-    entityId: s.entityId,
-    totalCost: Number(s.totalCost.toFixed(5)),
-    speedSeconds: Number((s.totalExecutionMs / 1000).toFixed(3)),
-    assignedVariant: s.assignedVariant,
-    isSuccess: !s.hasFailure
-  }));
-
-  // Scatter plot data series: Variant A vs Variant B or All Runs
-  const variantASeriesData = sessionRuns
-    .filter(r => r.assignedVariant === 'A')
-    .map(r => [r.totalCost, r.speedSeconds, r.sessionId, r.entityId, r.isSuccess ? 'Success' : 'Failed']);
-
-  const variantBSeriesData = sessionRuns
-    .filter(r => r.assignedVariant === 'B')
-    .map(r => [r.totalCost, r.speedSeconds, r.sessionId, r.entityId, r.isSuccess ? 'Success' : 'Failed']);
-
-  const unassignedSeriesData = sessionRuns
-    .filter(r => r.assignedVariant !== 'A' && r.assignedVariant !== 'B')
-    .map(r => [r.totalCost, r.speedSeconds, r.sessionId, r.entityId, r.isSuccess ? 'Success' : 'Failed']);
-
-  const option = {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: '#160d26',
-      borderColor: '#a855f7',
-      textStyle: { color: '#f3e8ff', fontFamily: 'Plus Jakarta Sans' },
-      formatter: (params: { data: [number, number, string, string, string]; seriesName: string }) => {
-        const [cost, speed, sessionId, entityId, status] = params.data;
-        return `
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-            <strong style="color: #d946ef;">${params.seriesName} Run</strong><br/>
-            <span>Session ID: ${sessionId}</span><br/>
-            <span>Entity ID: ${entityId}</span><br/>
-            <span>Cost (X): <strong>$${cost.toFixed(5)}</strong></span><br/>
-            <span>Speed (Y): <strong>${speed.toFixed(3)} sec</strong></span><br/>
-            <span>Status: <strong>${status}</strong></span>
-          </div>
-        `;
+    for (const evt of events) {
+      const sId = evt.sessionId || 'default_session';
+      if (!sessionMap[sId]) {
+        sessionMap[sId] = {
+          sessionId: sId,
+          entityId: evt.entityId || 'unknown_entity',
+          totalCost: 0,
+          totalExecutionMs: 0,
+          assignedVariant: evt.assignedVariant || 'A',
+          hasFailure: false
+        };
       }
-    },
-    legend: {
-      data: ['Variant A Runs', 'Variant B Runs', 'Standard Runs'],
-      textStyle: { color: '#e9d5ff', fontFamily: 'Plus Jakarta Sans', fontWeight: 'bold' }
-    },
-    grid: { left: '4%', right: '5%', bottom: '5%', containLabel: true },
-    xAxis: {
-      name: 'Cost ($ USD)',
-      nameLocation: 'middle',
-      nameGap: 30,
-      nameTextStyle: { color: '#f3e8ff', fontWeight: 'bold', fontFamily: 'Plus Jakarta Sans' },
-      type: 'value',
-      axisLine: { lineStyle: { color: '#6b21a8' } },
-      splitLine: { lineStyle: { color: 'rgba(168, 85, 247, 0.15)' } },
-      axisLabel: { color: '#e9d5ff', fontWeight: 'bold', formatter: '${value}' }
-    },
-    yAxis: {
-      name: 'Speed / Latency (Seconds)',
-      nameLocation: 'middle',
-      nameGap: 40,
-      nameTextStyle: { color: '#f3e8ff', fontWeight: 'bold', fontFamily: 'Plus Jakarta Sans' },
-      type: 'value',
-      axisLine: { lineStyle: { color: '#6b21a8' } },
-      splitLine: { lineStyle: { color: 'rgba(168, 85, 247, 0.15)' } },
-      axisLabel: { color: '#e9d5ff', fontWeight: 'bold', formatter: '{value}s' }
-    },
-    series: [
-      {
-        name: 'Variant A Runs',
-        type: 'scatter',
-        symbolSize: 14,
-        data: variantASeriesData,
-        itemStyle: { color: '#a855f7', shadowBlur: 8, shadowColor: 'rgba(168, 85, 247, 0.6)' }
-      },
-      {
-        name: 'Variant B Runs',
-        type: 'scatter',
-        symbolSize: 14,
-        data: variantBSeriesData,
-        itemStyle: { color: '#ec4899', shadowBlur: 8, shadowColor: 'rgba(236, 72, 153, 0.6)' }
-      },
-      {
-        name: 'Standard Runs',
-        type: 'scatter',
-        symbolSize: 14,
-        data: unassignedSeriesData,
-        itemStyle: { color: '#06b6d4', shadowBlur: 8, shadowColor: 'rgba(6, 182, 212, 0.6)' }
+      sessionMap[sId].totalCost += evt.tokenCost || 0;
+      sessionMap[sId].totalExecutionMs += evt.executionTimeMs || 0;
+      if (evt.assignedVariant) {
+        sessionMap[sId].assignedVariant = evt.assignedVariant;
       }
-    ]
-  };
+      if (evt.statusCode && evt.statusCode !== 'SUCCESS') {
+        sessionMap[sId].hasFailure = true;
+      }
+    }
+
+    const runs: SessionRunMetrics[] = Object.values(sessionMap).map(s => ({
+      sessionId: s.sessionId,
+      entityId: s.entityId,
+      totalCost: Number(s.totalCost.toFixed(5)),
+      speedSeconds: Number((s.totalExecutionMs / 1000).toFixed(3)),
+      assignedVariant: s.assignedVariant,
+      isSuccess: !s.hasFailure
+    }));
+
+    const variantASeriesData = runs
+      .filter(r => r.assignedVariant === 'A')
+      .map(r => [r.totalCost, r.speedSeconds, r.sessionId, r.entityId, r.isSuccess ? 'Success' : 'Failed']);
+
+    const variantBSeriesData = runs
+      .filter(r => r.assignedVariant === 'B')
+      .map(r => [r.totalCost, r.speedSeconds, r.sessionId, r.entityId, r.isSuccess ? 'Success' : 'Failed']);
+
+    const unassignedSeriesData = runs
+      .filter(r => r.assignedVariant !== 'A' && r.assignedVariant !== 'B')
+      .map(r => [r.totalCost, r.speedSeconds, r.sessionId, r.entityId, r.isSuccess ? 'Success' : 'Failed']);
+
+    const echartsOpt = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#160d26',
+        borderColor: '#a855f7',
+        textStyle: { color: '#f3e8ff', fontFamily: 'Plus Jakarta Sans' },
+        formatter: (params: { data: [number, number, string, string, string]; seriesName: string }) => {
+          const [cost, speed, sessionId, entityId, status] = params.data;
+          return `
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+              <strong style="color: #d946ef;">${params.seriesName} Run</strong><br/>
+              <span>Session ID: ${sessionId}</span><br/>
+              <span>Entity ID: ${entityId}</span><br/>
+              <span>Cost (X): <strong>$${cost.toFixed(5)}</strong></span><br/>
+              <span>Speed (Y): <strong>${speed.toFixed(3)} sec</strong></span><br/>
+              <span>Status: <strong>${status}</strong></span>
+            </div>
+          `;
+        }
+      },
+      legend: {
+        data: ['Variant A Runs', 'Variant B Runs', 'Standard Runs'],
+        textStyle: { color: '#e9d5ff', fontFamily: 'Plus Jakarta Sans', fontWeight: 'bold' }
+      },
+      grid: { left: '4%', right: '5%', bottom: '5%', containLabel: true },
+      xAxis: {
+        name: 'Cost ($ USD)',
+        nameLocation: 'middle',
+        nameGap: 30,
+        nameTextStyle: { color: '#f3e8ff', fontWeight: 'bold', fontFamily: 'Plus Jakarta Sans' },
+        type: 'value',
+        axisLine: { lineStyle: { color: '#6b21a8' } },
+        splitLine: { lineStyle: { color: 'rgba(168, 85, 247, 0.15)' } },
+        axisLabel: { color: '#e9d5ff', fontWeight: 'bold', formatter: '${value}' }
+      },
+      yAxis: {
+        name: 'Speed / Latency (Seconds)',
+        nameLocation: 'middle',
+        nameGap: 40,
+        nameTextStyle: { color: '#f3e8ff', fontWeight: 'bold', fontFamily: 'Plus Jakarta Sans' },
+        type: 'value',
+        axisLine: { lineStyle: { color: '#6b21a8' } },
+        splitLine: { lineStyle: { color: 'rgba(168, 85, 247, 0.15)' } },
+        axisLabel: { color: '#e9d5ff', fontWeight: 'bold', formatter: '{value}s' }
+      },
+      series: [
+        {
+          name: 'Variant A Runs',
+          type: 'scatter',
+          symbolSize: 14,
+          data: variantASeriesData,
+          itemStyle: { color: '#a855f7', shadowBlur: 8, shadowColor: 'rgba(168, 85, 247, 0.6)' }
+        },
+        {
+          name: 'Variant B Runs',
+          type: 'scatter',
+          symbolSize: 14,
+          data: variantBSeriesData,
+          itemStyle: { color: '#ec4899', shadowBlur: 8, shadowColor: 'rgba(236, 72, 153, 0.6)' }
+        },
+        {
+          name: 'Standard Runs',
+          type: 'scatter',
+          symbolSize: 14,
+          data: unassignedSeriesData,
+          itemStyle: { color: '#06b6d4', shadowBlur: 8, shadowColor: 'rgba(6, 182, 212, 0.6)' }
+        }
+      ]
+    };
+
+    return { sessionRuns: runs, option: echartsOpt };
+  }, [events]);
 
   return (
     <section aria-label="Resolved Agent Runs Analytics" className="neon-panel p-6 space-y-6 border-purple-500/40">
@@ -209,7 +211,7 @@ export function CostPerOutcomeChart({ totalCost, events }: CostPerOutcomeChartPr
           </div>
         ) : (
           <div className="w-full h-80">
-            <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+            <ReactECharts option={option} lazyUpdate={true} style={{ height: '100%', width: '100%' }} />
           </div>
         )}
       </div>

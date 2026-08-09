@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAnalyticsData } from './hooks/useAnalyticsData';
 import { filterEventsByDateRange, DateRangeState } from './utils/filterEventsByDateRange';
 import { filterEventsByEntity } from './utils/filterEventsByEntity';
+import { TimeGroupingInterval } from './utils/groupEventsByTimeInterval';
 import { Sidebar } from './components/Sidebar';
 import { TopNav } from './components/TopNav';
 import { TrafficOverview } from './components/TrafficOverview';
@@ -28,7 +29,8 @@ export function App(): React.ReactElement {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeState>({ preset: 'all' });
   const [selectedEntityId, setSelectedEntityId] = useState<string>('all');
-  const { data, loading, refresh } = useAnalyticsData(3000);
+  const [timeGrouping, setTimeGrouping] = useState<TimeGroupingInterval>('5m');
+  const { data, loading, refresh } = useAnalyticsData(300000);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -104,7 +106,13 @@ export function App(): React.ReactElement {
             </div>
           ) : (
             <>
-              {activeTab === 'overview' && <TrafficOverview events={filteredEvents} />}
+              {activeTab === 'overview' && (
+                <TrafficOverview
+                  events={filteredEvents}
+                  timeGrouping={timeGrouping}
+                  onTimeGroupingChange={setTimeGrouping}
+                />
+              )}
               {activeTab === 'sunburst' && <ToolSunburstInspector events={filteredEvents} />}
               {activeTab === 'transitions' && <TransitionNodeGraph transitions={transitions} />}
               {activeTab === 'heatmaps' && <ParameterHeatmap parameterFrequency={parameterFrequency} />}

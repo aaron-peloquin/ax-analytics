@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { GitMerge } from 'lucide-react';
 import { sanitizeSankeyLinks, SankeyLink } from '../utils/sanitizeSankeyLinks';
@@ -8,67 +8,55 @@ export interface SankeyFlowChartProps {
 }
 
 export function SankeyFlowChart({ transitions }: SankeyFlowChartProps): React.ReactElement {
-  const transitionEntries = Object.entries(transitions);
-  const rawLinks: SankeyLink[] = [];
+  const { links, sourceTotals, nodes, calculatedHeight } = useMemo(() => {
+    const transitionEntries = Object.entries(transitions);
+    const rawLinks: SankeyLink[] = [];
 
-  for (const [path, count] of transitionEntries) {
-    const parts = path.split(' -> ');
-    const source = parts[0];
-    const target = parts[1];
+    for (const [path, count] of transitionEntries) {
+      const parts = path.split(' -> ');
+      const source = parts[0];
+      const target = parts[1];
 
-    if (source && target) {
-      rawLinks.push({
-        source,
-        target,
-        value: count
-      });
+      if (source && target) {
+        rawLinks.push({
+          source,
+          target,
+          value: count
+        });
+      }
     }
-  }
 
-  // Enforce DAG property to eliminate layout cycle errors
-  const links = sanitizeSankeyLinks(rawLinks);
+    const processedLinks = sanitizeSankeyLinks(rawLinks);
+    const totals: Record<string, number> = {};
+    for (const link of processedLinks) {
+      totals[link.source] = (totals[link.source] || 0) + link.value;
+    }
 
-  if (links.length === 0) {
-    return (
-      <div className="w-full h-96 flex flex-col items-center justify-center p-8 text-center bg-[#0d061a]/60 rounded-2xl border border-purple-900/40 space-y-3">
-        <div className="p-3 rounded-2xl bg-purple-950/80 border border-purple-800/40 text-purple-300">
-          <GitMerge className="w-8 h-8" />
-        </div>
-        <div>
-          <h4 className="text-sm font-bold text-white font-heading">No Agent Tool Trajectory Data Ingested Yet</h4>
-          <p className="text-xs text-purple-200 font-medium max-w-md mt-1">
-            Ingest agent tool call telemetry with <code className="text-fuchsia-300 font-mono font-bold">invokedToolName</code> and <code className="text-fuchsia-300 font-mono font-bold">previousToolName</code> via cURL to map live tool request flows.
-          </p>
-        </div>
-      </div>
+    const nodeSet = new Set<string>();
+    for (const link of processedLinks) {
+      nodeSet.add(link.source);
+      nodeSet.add(link.target);
+    }
+    const derivedNodes = Array.from(nodeSet).map(name => ({ name }));
+
+    const nodeCount = derivedNodes.length;
+    const linkCount = processedLinks.length;
+    const maxBranchesFromSingleNode = Math.max(...Object.values(totals), 1);
+
+    const height = Math.max(
+      580,
+      Math.min(1200, Math.max(nodeCount * 50, linkCount * 70, maxBranchesFromSingleNode * 140))
     );
-  }
 
-  // Calculate total outgoing transitions for each source node to derive branching percentages
-  const sourceTotals: Record<string, number> = {};
-  for (const link of links) {
-    sourceTotals[link.source] = (sourceTotals[link.source] || 0) + link.value;
-  }
+    return {
+      links: processedLinks,
+      sourceTotals: totals,
+      nodes: derivedNodes,
+      calculatedHeight: height
+    };
+  }, [transitions]);
 
-  const nodeSet = new Set<string>();
-  for (const link of links) {
-    nodeSet.add(link.source);
-    nodeSet.add(link.target);
-  }
-  const nodes = Array.from(nodeSet).map(name => ({ name }));
-
-  // Dynamic adaptive height calculation based on node count and link density
-  const nodeCount = nodes.length;
-  const linkCount = links.length;
-  const maxBranchesFromSingleNode = Math.max(...Object.values(sourceTotals), 1);
-
-  // Dynamic canvas height (min 580px, scales up to 1200px)
-  const calculatedHeight = Math.max(
-    580,
-    Math.min(1200, Math.max(nodeCount * 50, linkCount * 70, maxBranchesFromSingleNode * 140))
-  );
-
-  const option = {
+  const option = useMemo(() => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
@@ -164,11 +152,27 @@ export function SankeyFlowChart({ transitions }: SankeyFlowChartProps): React.Re
         ]
       }
     ]
-  };
+  }), [nodes, links, sourceTotals]);
+
+  if (links.length === 0) {
+    return (
+      <div className="w-full h-96 flex flex-col items-center justify-center p-8 text-center bg-[#0d061a]/60 rounded-2xl border border-purple-900/40 space-y-3">
+        <div className="p-3 rounded-2xl bg-purple-950/80 border border-purple-800/40 text-purple-300">
+          <GitMerge className="w-8 h-8" />
+        </div>
+        <div>
+          <h4 className="text-sm font-bold text-white font-heading">No Agent Tool Trajectory Data Ingested Yet</h4>
+          <p className="text-xs text-purple-200 font-medium max-w-md mt-1">
+            Ingest agent tool call telemetry with <code className="text-fuchsia-300 font-mono font-bold">invokedToolName</code> and <code className="text-fuchsia-300 font-mono font-bold">previousToolName</code> via cURL to map live tool request flows.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full transition-all duration-300" style={{ height: `${calculatedHeight}px` }}>
-      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+      <ReactECharts option={option} lazyUpdate={true} style={{ height: '100%', width: '100%' }} />
     </div>
   );
 }
