@@ -259,14 +259,14 @@ To ensure accurate aggregation across Sankey flow diagrams and Sunburst hubs, ca
 1. **Agent Personas**: Use clean, descriptive hyphenated or colon-scoped names representing the specific AI persona or agent role (e.g. dm-persona, bookkeeper-agent, sales-assistant).
 2. **System & Route Endpoints**: When telemetry originates from internal service routes or MCP servers, set entityId to the endpoint path (e.g. /api/appin/campaign-chat, /api/mcp).
 3. **Stage-Aware Execution Contexts**: Append execution stages for fine-grained trajectory tracking when an agent transitions through phases (e.g. "livekit agent: bootup" during initial tool warming vs "livekit-agent" during live interaction).
-4. **Deterministic Fallback Cascade**: When entityId is omitted, SDKs and clients MUST evaluate fallbacks in order of specificity:
+4. **Deterministic Fallback Cascade**: When entityId is omitted, telemetry integrations MUST evaluate fallbacks in order of specificity:
    entityId -> persona -> service route path -> "agent-service".
 
 ---
 
 ## Automated Session Trajectory Flow Tracking
 
-To eliminate manual caller overhead when recording sequential tool invocations, SDKs and clients SHOULD maintain an in-memory session registry (sessionLastToolMap):
+To eliminate manual caller overhead when recording sequential tool invocations, telemetry integrations SHOULD maintain an in-memory session registry (sessionLastToolMap):
 
 - **Automatic Preceding Tool Lookup**: When an event with eventType: "tool_call" is logged without an explicit previousToolName, retrieve the preceding tool from sessionLastToolMap.get(sessionId).
 - **Bootstrap Initialization**: If no preceding tool exists for sessionId, default previousToolName to "init_session".
@@ -276,7 +276,7 @@ To eliminate manual caller overhead when recording sequential tool invocations, 
 
 ## Dynamic Endpoint & Environment Configuration
 
-Client integrations SHOULD dynamically resolve host and app key configurations based on runtime environment context:
+Telemetry integrations SHOULD dynamically resolve host and app key configurations based on runtime environment context:
 
 - **Browser Environments**: Proxy ingestion requests through /api/ax-analytics (via Next.js rewrite or equivalent web server proxy) to avoid CORS issues and expose a unified endpoint.
 - **Server Environments**: Read environment variables AX_ANALYTICS_HOST or NEXT_PUBLIC_AX_ANALYTICS_HOST, falling back to http://localhost:4400.

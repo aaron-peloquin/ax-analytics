@@ -9,7 +9,6 @@ Follow these core technical patterns when maintaining or extending `ax-analytics
 
 ## 1. Monorepo Structure (Nx + pnpm)
 - **`packages/shared` (`@ax-analytics/shared`):** Readonly TypeScript interfaces, event DTOs, and pure validators.
-- **`packages/client` (`ax-analytics/client`):** Published client SDK exporting `createAXClient` and pure transport functions (`trackEvent`, `trackAgentToolCall`, `getExperimentVariant`, `submitFeedback`).
 - **`apps/server` (`ax-analytics-server`):** Node.js Express server exposing `/v1/telemetry/event`, `/v1/experiments/variant`, `/v1/feedback`, and `/v1/analytics/summary`.
 - **`apps/admin-ui` (`ax-analytics-admin-ui`):** React + Vite dashboard.
 

@@ -3,9 +3,5 @@
     "port": 4400,
     "enableOtelExporter": true,
     "batchIngestIntervalMs": 1000
-  },
-  "clientDefaults": {
-    "autoCaptureBrowserInfo": true,
-    "maxRetries": 3
   }
 }

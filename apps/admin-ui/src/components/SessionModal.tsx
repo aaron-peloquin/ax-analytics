@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { TelemetryEvent } from '@ax-analytics/shared';
 import { X, Clock, Zap, DollarSign, Tag, Hash, ChevronRight } from 'lucide-react';
 
@@ -9,6 +10,23 @@ export interface SessionModalProps {
 }
 
 export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProps): React.ReactElement {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [onClose]);
+
   const sessionEvents = allEvents
     .filter(e => e.sessionId === sessionId)
     .slice()
@@ -23,15 +41,15 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
   const successCount = sessionEvents.filter(e => !e.statusCode || e.statusCode === 'SUCCESS').length;
   const errorCount = sessionEvents.length - successCount;
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={`Session ${sessionId} full telemetry view`}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="neon-panel w-[95vw] sm:w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-purple-500/40">
+      <div className="neon-panel w-[95vw] sm:w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] my-auto flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-purple-500/40">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-purple-900/60 bg-[#0c051a] flex-shrink-0">
           <div>
@@ -75,7 +93,7 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
         </div>
 
         {/* Timeline Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
           {sessionEvents.length === 0 ? (
             <p className="text-center text-purple-300 text-sm py-8">No events found for this session.</p>
           ) : (
@@ -201,4 +219,7 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
+

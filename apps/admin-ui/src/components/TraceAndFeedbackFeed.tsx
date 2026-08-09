@@ -32,7 +32,7 @@ export function TraceAndFeedbackFeed({ rawEvents, feedbackRecords }: TraceAndFee
 
         {feedbackRecords.length === 0 ? (
           <div className="py-8 text-center bg-[#100720]/60 rounded-xl border border-purple-900/40 text-xs text-purple-300/60">
-            No session feedback votes submitted yet. Call <code className="text-fuchsia-300 font-mono">ax.submitFeedback(...)</code> to populate!
+            No session feedback votes submitted yet. Submit votes via <code className="text-fuchsia-300 font-mono">POST /v1/session/feedback</code> to populate!
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

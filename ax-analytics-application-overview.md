@@ -4,7 +4,7 @@
 **Status:** Approved for Implementation  
 **Target Release:** Q3 2026  
 **Repository Architecture:** [Nx Monorepo](https://nx.dev)
-**Publishing Targets:** [npm](https://www.npmjs.com) (`ax-analytics/client`, `ax-analytics/server`)
+**Publishing Targets:** [npm](https://www.npmjs.com) (`@ax-analytics/shared`)
 
 ---
 
@@ -16,7 +16,7 @@ Traditional software logging tools (e.g., standard [OpenTelemetry](https://opent
 
 ### Key Architectural Characteristics
 
-* **Nx Monorepo Architecture:** Monorepo package layout exposing subpath exports (`ax-analytics/client` and `ax-analytics/server`).
+* **Nx Monorepo Architecture:** Monorepo package layout exposing shared types (`@ax-analytics/shared`), Express HTTP server (`apps/server`), and React dashboard (`apps/admin-ui`).
 * **Dual-Engine Storage:** [PostgreSQL](https://www.postgresql.org) with [pgvector](https://github.com/pgvector/pgvector) for metadata, A/B split rules, vector embeddings, and explicit feedback; [ClickHouse](https://clickhouse.com) for high-volume time-series telemetry ingestion and trajectory pathing.
 * **OTel Dual-Track Pipeline:** Consumes and emits native OpenTelemetry spans, providing anonymized group aggregate analytics alongside raw trace feeds for step-by-step debugging.
 * **Hybrid Identity & Sticky Experiments:** Automatic A/B variant assignment across both human `user_id`s and dynamic `agent_identity`s (e.g., `inventory-agent-02JULY2026-tools`).
@@ -48,7 +48,7 @@ Traditional software logging tools (e.g., standard [OpenTelemetry](https://opent
 |   - User Feedback (+1 / -1)              - Sticky A/B Variant Consumption        |
 +-----------------------------------------------------------------------------------+
 |
-npm package: ax-analytics/client
+HTTP API Telemetry Ingestion (POST /v1/telemetry/event)
 v
 +-----------------------------------------------------------------------------------+
 |                         AX Analytics Ingestion Server                             |
@@ -272,53 +272,55 @@ Records session feedback (`+1` / `-1`).
 
 **Response:** `201 Created` → `{"status": "recorded"}`
 
-## 7. TypeScript SDK Interface (`ax-analytics/client`)
+## 7. HTTP API Telemetry Integration & Skill Specification
 
-Exposed under subpath export `ax-analytics/client`:
+Telemetry ingestion, A/B variant resolution, and session feedback are performed via pure HTTP endpoints and TypeScript contracts from `@ax-analytics/shared` (or guided via `.agents/skills/ax-analytics-telemetry/SKILL.md`):
 
-```typescript
-import { AXClient } from 'ax-analytics/client';
+### 1. Ingest Telemetry Event (Tool Call / Pageview)
 
-const ax = new AXClient({
-  appKey: 'app_live_8832109',
-  endpoint: 'https://analytics.company.com',
-  clientString: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...' // Optional: defaults to browser window.navigator
-});
+```bash
+curl -X POST http://localhost:4400/v1/telemetry/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appKey": "app_live_8832109",
+    "sessionId": "sess_987654321",
+    "entityId": "inventory-agent-02JULY2026-tools",
+    "entityType": "agent",
+    "eventType": "tool_call",
+    "invokedToolName": "edit_product",
+    "previousToolName": "search_products",
+    "params": { "product_id": "PROD-1024" },
+    "results": { "status": "updated" },
+    "statusCode": "SUCCESS",
+    "tokenCost": 0.0042,
+    "executionTimeMs": 340
+  }'
+```
 
-// 1. Track Human Web Event
-ax.track({
-  sessionId: 'sess_123',
-  entityId: 'user_882',
-  eventType: 'button_click',
-  params: { buttonId: 'submit_checkout' }
-});
+### 2. Resolve Sticky A/B Experiment Variant
 
-// 2. Track AI Agent Tool Call Event
-ax.trackAgentToolCall({
-  sessionId: 'sess_987654321',
-  agentIdentity: 'inventory-agent-02JULY2026-tools',
-  toolName: 'edit_product',
-  previousToolName: 'search_products',
-  params: { product_id: 'PROD-1024' },
-  results: { status: 'updated' },
-  statusCode: 'SUCCESS',
-  tokenCost: 0.0042,
-  executionTimeMs: 340
-});
+```bash
+curl -X POST http://localhost:4400/v1/experiments/variant \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appKey": "app_live_8832109",
+    "experimentKey": "new_inventory_schema_v2",
+    "entityId": "inventory-agent-02JULY2026-tools"
+  }'
+```
 
-// 3. Get Sticky A/B Experiment Variant
-const variant = await ax.getExperimentVariant({
-  experimentKey: 'new_inventory_schema_v2',
-  entityId: 'inventory-agent-02JULY2026-tools'
-}); // Returns "A" or "B"
+### 3. Submit Session Feedback
 
-// 4. Submit Session Feedback
-await ax.submitFeedback({
-  sessionId: 'sess_987654321',
-  entityId: 'user_882',
-  vote: 1,
-  comment: 'Great experience!'
-});
+```bash
+curl -X POST http://localhost:4400/v1/session/feedback \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appKey": "app_live_8832109",
+    "sessionId": "sess_987654321",
+    "entityId": "user_882",
+    "vote": 1,
+    "comment": "Great experience!"
+  }'
 ```
 
 ## 8. Admin Web UI & Custom OAuth Integration
@@ -377,11 +379,6 @@ ax-analytics/
 │       │   └── pages/            # Traffic, Experiments, OTel Trace Inspector
 │       └── main.tsx
 └── packages/
-    ├── client/                   # Published to npm: ax-analytics/client
-    │   ├── src/
-    │   │   ├── index.ts          # AXClient SDK Implementation
-    │   │   └── browser.ts        # Browser environment detectors
-    │   └── package.json
     └── shared/                   # Shared TypeScript Types & Schemas
         └── src/
             └── types.ts
@@ -389,10 +386,10 @@ ax-analytics/
 
 ## 10\. Developer Quickstart Guide
 
-### Step 1: Install Package
+### Step 1: Install Dependencies
 
 ```bash
-npm install ax-analytics
+pnpm install
 ```
 
 ### Step 2: Configure Environment Variables (`.env`)
@@ -408,7 +405,7 @@ CLICKHOUSE_USER="default"
 CLICKHOUSE_PASSWORD="clickhouse_secret"
 
 # Custom OAuth AD Settings
-OAUTH_PROVIDER_URL="[https://auth.company.com/oauth2/authorize](https://auth.company.com/oauth2/authorize)"
+OAUTH_PROVIDER_URL="https://auth.company.com/oauth2/authorize"
 OAUTH_CLIENT_ID="ax_analytics_server_id"
 OAUTH_CLIENT_SECRET="oauth_secret_key"
 REQUIRED_AD_GROUP="CN=AX-Analytics-Admins,OU=Groups,DC=company,DC=com"
@@ -419,40 +416,31 @@ REQUIRED_AD_GROUP="CN=AX-Analytics-Admins,OU=Groups,DC=company,DC=com"
 ```json
 {
   "server": {
-    "port": 4000,
+    "port": 4400,
     "enableOtelExporter": true,
     "batchIngestIntervalMs": 1000
-  },
-  "clientDefaults": {
-    "autoCaptureBrowserInfo": true,
-    "maxRetries": 3
   }
 }
 ```
 
-### Step 4: Initialize Server & Client
+### Step 4: Run Telemetry Server & Ingest Telemetry
 
-* **Server Engine (`server.ts`):**
+* **Start Server (`pnpm dev`):**
 
-```typescript
-import { createAXServer } from 'ax-analytics/server';
-
-const server = createAXServer({
-  configPath: './ax-analytics-config.json'
-});
-
-server.listen(4000, () => {
-  console.log('AX Analytics Server running on port 4000');
-});
+```bash
+pnpm dev
 ```
 
-* **Client SDK (`client.ts`):**
+* **Ingest Telemetry via HTTP API:**
 
-```typescript
-import { AXClient } from 'ax-analytics/client';
-
-export const ax = new AXClient({
-  appKey: 'app_live_8832109',
-  endpoint: 'http://localhost:4000'
-});
+```bash
+curl -X POST http://localhost:4400/v1/telemetry/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appKey": "app_live_8832109",
+    "sessionId": "sess_123",
+    "entityId": "agent-v1",
+    "eventType": "tool_call",
+    "invokedToolName": "search_products"
+  }'
 ```
