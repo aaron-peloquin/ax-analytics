@@ -46,7 +46,7 @@ export function CostPerOutcomeChart({ totalCost, events }: CostPerOutcomeChartPr
           entityId: evt.entityId || 'unknown_entity',
           totalCost: 0,
           totalExecutionMs: 0,
-          assignedVariant: evt.assignedVariant || 'A',
+          assignedVariant: evt.assignedVariant || 'Standard',
           hasFailure: false
         };
       }
