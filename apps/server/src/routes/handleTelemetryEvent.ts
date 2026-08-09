@@ -12,7 +12,7 @@ export function handleTelemetryEvent(clickhouseStore: ClickhouseStore) {
     }
 
     const raw = payload as Record<string, unknown>;
-    const rawSessId = raw.sessionId || raw.session_id;
+    const rawSessId = raw.sessionId || raw.session_id || raw.otelTraceId || raw.otel_trace_id;
     const sessionId = (typeof rawSessId === 'string' && String(rawSessId).trim().length > 0)
       ? String(rawSessId)
       : `ax_sess_${randomUUID()}`;
@@ -33,4 +33,5 @@ export function handleTelemetryEvent(clickhouseStore: ClickhouseStore) {
     res.status(202).json({ status: 'queued', sessionId: event.sessionId });
   };
 }
+
 

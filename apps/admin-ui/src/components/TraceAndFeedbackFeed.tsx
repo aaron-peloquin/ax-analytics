@@ -15,10 +15,10 @@ export function TraceAndFeedbackFeed({ rawEvents, feedbackRecords }: TraceAndFee
           <h2 className="text-xl font-bold text-white font-heading flex items-center gap-2">
             Telemetry Spans & Data Table Listing
             <span className="text-xs px-3 py-1 rounded-full bg-purple-950/80 text-fuchsia-300 border border-purple-500/40 font-mono">
-              Interactive Grid Feed
+              3-Tier Metadata Groupings
             </span>
           </h2>
-          <p className="text-xs text-purple-300/70">Data grid with sorting, filtering, and pagination across all telemetry events and trace spans.</p>
+          <p className="text-xs text-purple-300/70">Interactive telemetry grid with flexible grouping toggles across Multi-Agent Systems, Agent Identities, Sessions, and Raw Spans.</p>
         </div>
 
         <AgGridDataListing events={rawEvents} />

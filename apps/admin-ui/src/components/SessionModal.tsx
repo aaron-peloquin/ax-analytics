@@ -27,8 +27,17 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
     };
   }, [onClose]);
 
+  const directEvents = allEvents.filter(e => e.sessionId === sessionId);
+  const matchingMultiagentId = directEvents.find(e => Boolean(e.multiagentIdentity))?.multiagentIdentity;
+  const matchingOtelTraceId = directEvents.find(e => Boolean(e.otelTraceId))?.otelTraceId;
+
   const sessionEvents = allEvents
-    .filter(e => e.sessionId === sessionId)
+    .filter(e => {
+      if (e.sessionId === sessionId) return true;
+      if (matchingMultiagentId && e.multiagentIdentity && e.multiagentIdentity === matchingMultiagentId) return true;
+      if (matchingOtelTraceId && e.otelTraceId && e.otelTraceId === matchingOtelTraceId) return true;
+      return false;
+    })
     .slice()
     .sort((a, b) => {
       if (!a.timestamp) return 1;
@@ -53,7 +62,7 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
         {/* Modal Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-purple-900/60 bg-[#0c051a] flex-shrink-0">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-white font-heading">Full Session Timeline</h2>
+            <h2 className="text-sm sm:text-base font-bold text-white font-heading">Full Agent Run Timeline</h2>
             <p className="text-xs font-mono text-fuchsia-300 mt-0.5 truncate max-w-[200px] sm:max-w-none">{sessionId}</p>
           </div>
 
@@ -95,30 +104,44 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
         {/* Timeline Body */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
           {sessionEvents.length === 0 ? (
-            <p className="text-center text-purple-300 text-sm py-8">No events found for this session.</p>
+            <p className="text-center text-purple-300 text-sm py-8">No events found for this session run.</p>
           ) : (
             <ol className="relative border-l border-purple-800/50 ml-3 space-y-4">
               {sessionEvents.map((evt, idx) => {
                 const isError = evt.statusCode && evt.statusCode !== 'SUCCESS';
+                const isLlm = evt.eventType === 'llm_inference';
                 const time = evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString() : `Span ${idx + 1}`;
+                const titleLabel = evt.invokedToolName || (isLlm ? `LLM (${evt.model || evt.provider || 'Inference'})` : evt.eventType);
+
                 return (
                   <li key={`${evt.otelSpanId || idx}`} className="ml-6 relative">
                     {/* Timeline Dot */}
                     <span className={`absolute -left-9 flex items-center justify-center w-4 h-4 rounded-full border-2 mt-1 ${
                       isError
                         ? 'border-rose-500 bg-rose-950'
+                        : isLlm
+                        ? 'border-cyan-400 bg-cyan-950'
                         : 'border-fuchsia-500 bg-fuchsia-950'
                     }`} aria-hidden="true">
-                      <span className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-400' : 'bg-fuchsia-400'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        isError ? 'bg-rose-400' : isLlm ? 'bg-cyan-300' : 'bg-fuchsia-400'
+                      }`} />
                     </span>
 
                     <div className={`neon-panel p-4 rounded-xl space-y-3 border ${
-                      isError ? 'border-rose-900/50' : 'border-purple-900/40'
+                      isError ? 'border-rose-900/50' : isLlm ? 'border-cyan-900/50' : 'border-purple-900/40'
                     }`}>
                       {/* Span Header */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-mono font-bold text-fuchsia-300">{evt.invokedToolName || evt.eventType}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${
+                            isLlm
+                              ? 'bg-cyan-950 text-cyan-300 border-cyan-800'
+                              : 'bg-fuchsia-950 text-fuchsia-300 border-fuchsia-800'
+                          }`}>
+                            {isLlm ? 'LLM Inference' : 'Tool Call'}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-white">{titleLabel}</span>
                           {evt.previousToolName && (
                             <>
                               <ChevronRight className="w-3 h-3 text-purple-400" aria-hidden="true" />
