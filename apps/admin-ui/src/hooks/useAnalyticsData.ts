@@ -6,7 +6,6 @@ export interface AnalyticsSummary {
   readonly totalEvents: number;
   readonly totalCost: number;
   readonly transitions: Record<string, number>;
-  readonly parameterFrequency: Record<string, number>;
   readonly rawEvents: TelemetryEvent[];
   readonly feedback: SessionFeedbackRecord[];
 }

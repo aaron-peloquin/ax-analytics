@@ -2,7 +2,7 @@
 
 Tracing tells us *what* executed; analytics tells us *how* an agent navigated. OpenTelemetry (OTel) traces and system logs capture individual API latencies and server errors, but they miss macro-level behavioral patterns across autonomous sessions.
 
-Tools are a critical part of an agent's user interface and orchestration harnesses act as application routers, then we must analyze agent behavior with the same depth, visual intuition, and conversion rigor that we apply to human product analytics. 
+Tools are a critical part of an agent's user interface and orchestration harnesses act as application routers, then we must analyze agent behavior with the same depth, visual intuition, and conversion rigor that we apply to human product analytics.
 
 | **Human UX Analytic Concept** | **Agent Experience (AX) Equivalent** |
 | :--- | :--- |
@@ -36,7 +36,9 @@ graph LR
 ```
 
 ### Measuring Conversion Velocity
+
 Treating tool sequences like checkout funnels (`Landed` $\rightarrow$ `Cart` $\rightarrow$ `Checkout`) exposes workflow bottlenecks:
+
 * **Transition Mapping:** Identifies the primary paths agents take to resolve requests.
 * **Loop Eddies:** Highlights nodes where agents repeatedly call the same tool with minor parameter changes due to uninformative return payloads.
 * **Dead-End Tools:** Isolates specific tools or markdown context docs that trigger early human intervention or session abandonment.
@@ -45,16 +47,12 @@ Treating tool sequences like checkout funnels (`Landed` $\rightarrow$ `Cart` $\r
 > **Telemetry Trend:** Trajectory maps show 24% of sessions enter a loop eddy re-executing `search_products` before escalating.
 > **Possible AX Fix:** Enhance the tool description's contextual microcopy to clarify search query constraints, or implement a Progressive AX state shift after two failed lookups to route the agent toward `get_product_details`.
 
-## 2. Payload Intelligence & Friction Heatmaps
+## 2. Payload Intelligence & Contextual Friction
 
 Tool parameters function like form fields filled out by non-human users. Analyzing parameter distributions highlights schema clarity and prompt comprehension.
 
-### Parameter Value Heatmaps
-Aggregating keys and values passed into tools across thousands of runs exposes model misunderstandings:
-* **Hallucinated Parameters:** If 65% of agents pass an unsupported value (e.g., `filter_by_color` receiving `#FF0000` instead of `red`) to `search_products`, the tool's description or a previously invoked context document implied capabilities the backend lacks.
-* **Schema Failure Slices:** Isolates validation errors from reasoning flaws (e.g., `edit_product` fails 90% of the time *only* when `variant_id` is passed as a string instead of an integer).
+### Contextual Friction Analysis
 
-### Contextual Friction Heatmaps
 Surfaces turns where agents exhibit "cognitive hesitation" such as executing multiple consecutive `get_skill_doc` lookups or inspecting schemas repeatedly before acting - indicating ambiguous instructions or conflicting guardrails in markdown docs.
 
 ## 3. Multi-Agent & Delegation Telemetry
@@ -82,6 +80,7 @@ Single-threaded tracking fails when a supervisor hands off work to a subagent. A
 In traditional UX, teams optimize conversion rates to maximize revenue per user. In AX, we optimize **Task Completion ROI** - balancing token spend and speed against business outcomes.
 
 ### Cost-Per-Resolved-Outcome
+
 By linking session expenditure directly to task completion, AX Analytics measures financial efficiency:
 
 $$\text{Cost per Resolved Outcome} = \frac{\sum \text{Total Session Token Cost}}{\text{Successfully Completed Business Tasks}}$$
@@ -89,6 +88,7 @@ $$\text{Cost per Resolved Outcome} = \frac{\sum \text{Total Session Token Cost}}
 If *Agent Variant A* completes a task for $0.03 in 3 turns, while *Agent Variant B* takes 11 turns and costs $0.14 for the same result, analytics pinpoints the structural routing defect in Variant B.
 
 ### Semantic Drift Tracking
+
 Measures how far an agent's reasoning scratchpad strays from the original prompt over multi-turn interactions. Tracking semantic similarity across turns catches **hallucination spirals** before agents burn budget on unrecoverable loops.
 
 > [!TIP]
@@ -108,6 +108,7 @@ Live Agent Traffic ──────┤
 Running these two variants in production simultaneously removes most variables for a head-to-head comparison. From varying user queries coming in to different backend tool responses being returned, this helps to normalize our test data.
 
 ### Key Experimental Vectors
+
 * **Contextual Microcopy:** Compares proactive tool descriptions (*"Use this when the user mentions stock counts..."*) against passive definitions (*"Fetches inventory records"*).
 * **Schema Variant Testing:** Evaluates rigid JSON `enums` versus open-ended strings with descriptive markdown examples to reduce tool error rates.
 * **Harness Routing Comparisons:** Tests dynamic **Progressive AX** state-switching against static **Megamenu** setups (all tools mounted up front) to measure direct impacts on token spend and completion speed.
@@ -119,6 +120,6 @@ Running these two variants in production simultaneously removes most variables f
 AX Analytics turns agent optimization into an iterative, data-driven discipline:
 
 1. **Observe** tool trajectories to detect loop eddies and dead ends.
-2. **Diagnose** parameter heatmaps to isolate schema errors from microcopy flaws.
+2. **Diagnose** tool parameter breakdowns to isolate schema errors from microcopy flaws.
 3. **Measure** Cost-Per-Resolved-Outcome to align technical execution with business ROI.
 4. **Experiment** via live A/B testing to refine tool schemas, context docs, and routing states.

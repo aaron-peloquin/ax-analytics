@@ -9,7 +9,6 @@ import { TopNav } from './components/TopNav';
 import { TrafficOverview } from './components/TrafficOverview';
 import { ToolSunburstInspector } from './components/ToolSunburstInspector';
 import { TransitionNodeGraph } from './components/TransitionNodeGraph';
-import { ParameterHeatmap } from './components/ParameterHeatmap';
 import { CostPerOutcomeChart } from './components/CostPerOutcomeChart';
 import { ExperimentManager } from './components/ExperimentManager';
 import { TraceAndFeedbackFeed } from './components/TraceAndFeedbackFeed';
@@ -19,7 +18,7 @@ export function App(): React.ReactElement {
   const getInitialTab = (): string => {
     if (typeof window !== 'undefined' && window.location.hash) {
       const hashTab = window.location.hash.replace(/^#\/?/, '');
-      if (['overview', 'sunburst', 'transitions', 'heatmaps', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
+      if (['overview', 'sunburst', 'transitions', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
         return hashTab;
       }
     }
@@ -45,7 +44,7 @@ export function App(): React.ReactElement {
   useEffect(() => {
     const handleHashChange = () => {
       const hashTab = window.location.hash.replace(/^#\/?/, '');
-      if (['overview', 'sunburst', 'transitions', 'heatmaps', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
+      if (['overview', 'sunburst', 'transitions', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
         setActiveTab(hashTab);
       }
     };
@@ -73,18 +72,12 @@ export function App(): React.ReactElement {
 
   
   const transitions: Record<string, number> = {};
-  const parameterFrequency: Record<string, number> = {};
   
   for (const evt of filteredEvents) {
     // Strictly filter trajectory flows to agentic tool_call events only
     if (evt.eventType === 'tool_call' && evt.invokedToolName && evt.previousToolName) {
       const key = `${evt.previousToolName} -> ${evt.invokedToolName}`;
       transitions[key] = (transitions[key] || 0) + 1;
-    }
-    if (evt.params) {
-      for (const k of Object.keys(evt.params)) {
-        parameterFrequency[k] = (parameterFrequency[k] || 0) + 1;
-      }
     }
   }
 
@@ -137,7 +130,6 @@ export function App(): React.ReactElement {
               )}
               {activeTab === 'sunburst' && <ToolSunburstInspector events={filteredEvents} />}
               {activeTab === 'transitions' && <TransitionNodeGraph transitions={transitions} />}
-              {activeTab === 'heatmaps' && <ParameterHeatmap parameterFrequency={parameterFrequency} />}
               {activeTab === 'cost' && <CostPerOutcomeChart totalCost={totalCost} events={filteredEvents} />}
               {activeTab === 'experiments' && <ExperimentManager />}
               {activeTab === 'traces' && <TraceAndFeedbackFeed rawEvents={filteredEvents} feedbackRecords={feedback} />}

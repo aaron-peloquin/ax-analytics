@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, GitMerge, Table, Zap, DollarSign, Settings, Layers } from 'lucide-react';
+import { Activity, GitMerge, Table, Zap, DollarSign, Settings } from 'lucide-react';
 
 export interface HeaderProps {
   readonly activeTab: string;
@@ -12,7 +12,6 @@ export function Header({ activeTab, setActiveTab, totalEvents, onSendTestEvent }
   const tabs = [
     { id: 'overview', label: 'Traffic Overview', icon: Activity },
     { id: 'transitions', label: 'Tool Sankey Trajectories', icon: GitMerge },
-    { id: 'heatmaps', label: 'Parameter Heatmap', icon: Layers },
     { id: 'cost', label: 'Cost & ROI', icon: DollarSign },
     { id: 'experiments', label: 'A/B Experiments', icon: Settings },
     { id: 'traces', label: 'Opik / AG-Grid Spans', icon: Table }

@@ -208,7 +208,6 @@ The shared types package exports **`_v1`** contracts for integrating from any la
 | Traffic Overview | `#overview` | Real-time event feed, error rates, latency histogram |
 | Tool Inspector | `#sunburst` | Sunburst param hub + AG Grid value breakdown table |
 | Tool Request Flows | `#transitions` | Agent flow diagram (tool call trajectories) |
-| Parameter Heatmap | `#heatmaps` | Schema friction & parameter value frequency |
 | Resolved Agent Runs | `#cost` | Cost vs. speed scatter plot of completed sessions |
 | A/B Experiments | `#experiments` | Manage sticky experiment rules |
 | Telemetry Spans Grid | `#traces` | Filterable spans table + session timeline modal on click |

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, GitMerge, Table, DollarSign, Settings, Layers, PieChart, Code, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Activity, GitMerge, Table, DollarSign, Settings, PieChart, Code, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 export interface SidebarProps {
   readonly activeTab: string;
@@ -15,7 +15,6 @@ export function Sidebar({ activeTab, setActiveTab, isCollapsed, onToggleCollapse
     { id: 'overview', label: 'Traffic Overview', icon: Activity, desc: 'Real-time telemetry' },
     { id: 'sunburst', label: 'Tool Inspector', icon: PieChart, desc: 'Param hub & value table' },
     { id: 'transitions', label: 'Tool Request Flows', icon: GitMerge, desc: 'Agent & page flows' },
-    { id: 'heatmaps', label: 'Parameter Heatmap', icon: Layers, desc: 'Schema friction' },
     { id: 'cost', label: 'Resolved Agent Runs', icon: DollarSign, desc: 'Execution & outcomes' },
     { id: 'experiments', label: 'A/B Experiments', icon: Settings, desc: 'Sticky variant rules' },
     { id: 'traces', label: 'Telemetry Spans Grid', icon: Table, desc: 'Filterable trace data' },

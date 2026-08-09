@@ -12,7 +12,7 @@
 
 `ax-analytics` is an open-source, hybrid telemetry, A/B experimentation, and behavioral intelligence platform engineered for modern web applications running integrated AI Agent workflows.
 
-Traditional software logging tools (e.g., standard [OpenTelemetry](https://opentelemetry.io)) record microscopic execution traces and latency spans, but fail to aggregate macro-level non-human behavioral patterns or evaluate prompt/tool experiments across multi-turn sessions. `ax-analytics` bridges traditional product web analytics (pageviews, button clicks, form submits) with Agent Experience (AX) metrics (tool call transition maps, loop eddies, parameter heatmaps, sub-agent handoffs, semantic drift, and feedback loops).
+Traditional software logging tools (e.g., standard [OpenTelemetry](https://opentelemetry.io)) record microscopic execution traces and latency spans, but fail to aggregate macro-level non-human behavioral patterns or evaluate prompt/tool experiments across multi-turn sessions. `ax-analytics` bridges traditional product web analytics (pageviews, button clicks, form submits) with Agent Experience (AX) metrics (tool call transition maps, loop eddies, sub-agent handoffs, semantic drift, and feedback loops).
 
 ### Key Architectural Characteristics
 
@@ -68,7 +68,7 @@ v                                       v
 |  - Registered Applications          |   |  - High-Volume Telemetry Spans      |
 |  - Sticky A/B Assignment Rules      |   |  - Time-Series Event Ingestion      |
 |  - Session Feedback (+1 / -1)       |   |  - Aggregated Tool Transition Maps  |
-|  - Reasoning Vector Embeddings      |   |  - Parameter Value Heatmap Counts   |
+|  - Reasoning Vector Embeddings      |   |  - Trajectory Flow Analysis         |
 +-------------------------------------+   +-------------------------------------+
 ```
 
@@ -169,65 +169,41 @@ PARTITION BY toYYYYMM(timestamp)
 ORDER BY (app_key, event_type, timestamp, session_id);
 ```
 
-## 5\. Key Features & Hybrid Telemetry Specifications
+## 5. Key Features & Hybrid Telemetry Specifications
 
 ### 5.1 Hybrid Identity & Sticky A/B Experimentation
 
 * **Human App Scope:** Bucket assigned based on human `user_id`.
-    HTML
 
 * **Agent Scope:** Bucket assigned based on `agent_identity` (e.g., `inventory-agent-02JULY2026-tools`) or `user_id`.
-    HTML\+ 2
 
 * **Resolution Rule:** When requesting a variant, the server checks `ab_assignments` in PostgreSQL. If no record exists, it calculates a deterministic hash (`hash(entity_id + experiment_id) % 100`), compares it against `split_percentage`, writes the assignment to PostgreSQL, and returns the assigned variant (`"A"` or `"B"`).
 
-    HTML\+ 4
-
 ### 5.2 OTel Dual-Track Telemetry Pipeline
 
-1. **Aggregated Group Views:** High-volume time-series metrics stream into ClickHouse to calculate transition maps, loop eddies, parameter value heatmaps, and financial conversion velocity.
-
-    HTML\+ 3
+1. **Aggregated Group Views:** High-volume time-series metrics stream into ClickHouse to calculate transition maps, loop eddies, and financial conversion velocity.
 
 2. **Raw Span Feed:** Full OpenTelemetry traces are stored with matching `otel_trace_id` and `otel_span_id`. Administrators can toggle the Web UI between anonymized group aggregate charts and raw, unredacted span feeds for manual trace inspection and step-by-step debugging.
-
-    HTML\+ 4
 
 ### 5.3 AX Analytics Visual Modules (Admin Web UI)
 
 * **Tool Call Transition Maps:** Node graph displaying transition percentages, loop eddies (repetitive calls), and dead ends.
 
-    HTML\+ 4
-
-* **Parameter Value Heatmaps:** Frequency analysis of keys and values passed in `params` JSON blobs to detect schema mismatches and hallucinated fields.
-
-    HTML\+ 4
-
 * **SubAgent Delegation Telemetry:** Tracks supervisor-to-worker handoffs, measuring context loss, duplicate queries, and worker completion rates.
-
-    HTML
 
 * **Cost-per-Resolved-Outcome:** Calculates total token expenditure divided by completed business outcomes:
 
-    HTML\+ 2
-
-    Cost per Resolved Outcome\=Successfully Completed Business Tasks∑Total Session Token Cost​
+    Cost per Resolved Outcome = Successfully Completed Business Tasks / Total Session Token Cost
 
 * **Semantic Drift Tracking:** Measures vector cosine distance across consecutive turns in `reasoning_embeddings` using pgvector to catch reasoning spirals early.
 
-    HTML\+ 1
-
 * **Session Feedback Loop:** Displays aggregated thumbs up/down (`+1` / `-1`) votes attached to `session_id` and correlates satisfaction scores against execution paths.
 
-    HTML\+ 4
-
-## 6\. API Contracts
+## 6. API Contracts
 
 ### POST `/v1/telemetry/event`
 
 Injects a structured event payload into the ClickHouse pipeline.
-
-HTML\+ 2
 
 * **Request Headers:** `x-app-key: <APP_KEY>`
 
@@ -258,8 +234,6 @@ HTML\+ 2
 
 Fetches or generates a sticky A/B variant for a given human user or agent.
 
-HTML\+ 4
-
 * **Request Body:**
 
 ```json
@@ -284,8 +258,6 @@ HTML\+ 4
 
 Records session feedback (`+1` / `-1`).
 
-HTML\+ 1
-
 * **Request Body:**
 
 ```json
@@ -298,9 +270,9 @@ HTML\+ 1
 }
 ```
 
-* **Response:** `201 Created` → `{"status": "recorded"}`
+**Response:** `201 Created` → `{"status": "recorded"}`
 
-## 7\. TypeScript SDK Interface (`ax-analytics/client`)
+## 7. TypeScript SDK Interface (`ax-analytics/client`)
 
 Exposed under subpath export `ax-analytics/client`:
 
@@ -309,7 +281,7 @@ import { AXClient } from 'ax-analytics/client';
 
 const ax = new AXClient({
   appKey: 'app_live_8832109',
-  endpoint: '[https://analytics.company.com](https://analytics.company.com)',
+  endpoint: 'https://analytics.company.com',
   clientString: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...' // Optional: defaults to browser window.navigator
 });
 
@@ -349,51 +321,29 @@ await ax.submitFeedback({
 });
 ```
 
-## 8\. Admin Web UI & Custom OAuth Integration
+## 8. Admin Web UI & Custom OAuth Integration
 
 ### 8.1 Active Directory OAuth Authentication Flow
 
 1. User navigates to `/admin` dashboard.
 
-    HTML\+ 1
-
 2. Server redirects to the custom AD OAuth Provider service endpoint.
-
-    HTML\+ 2
 
 3. Provider redirects back to `/v1/auth/callback` with an authorization code.
 
-    HTML
-
 4. Server exchanges code for user profile data and an array of AD Group memberships.
-
-    HTML\+ 2
 
 5. Server verifies presence of authorized AD Group (e.g., `CN=AX-Analytics-Admins,OU=Groups,DC=company,DC=com`).
 
-    HTML\+ 2
-
 6. Upon validation, an encrypted HTTP-only session cookie is issued.
-
-    HTML
 
 ### 8.2 Dashboard Views
 
 * **Time-Series Traffic Overview:** Aggregate traffic over configurable date ranges (pageviews, clicks, tool calls, errors).
 
-    HTML\+ 1
-
 * **Transition Trajectory Maps:** Interactive node flow graph visualizing tool transitions, backtracks, and loop eddies.
 
-    HTML\+ 4
-
-* **Parameter Value Heatmaps:** Highlights top parameter inputs, hallucinated fields, and schema mismatches.
-
-    HTML\+ 4
-
 * **Cost-Per-Resolved-Outcome:** Plots financial token velocity against completed business tasks.
-
-    HTML\+ 2
 
 * **A/B Experiment Manager:** Interface to create experiments, toggle active status, and adjust A/B split percentages.
 
@@ -423,7 +373,7 @@ ax-analytics/
 │   │   └── main.ts
 │   └── admin-ui/                 # React Dashboard Web UI
 │       ├── src/
-│       │   ├── components/       # Trajectory Maps, Heatmaps, Charts
+│       │   ├── components/       # Trajectory Maps, Flow Graphs, Charts
 │       │   └── pages/            # Traffic, Experiments, OTel Trace Inspector
 │       └── main.tsx
 └── packages/

@@ -32,7 +32,6 @@ const PAGE_TITLES: Record<string, string> = {
   overview:    'Traffic & Operational Telemetry Overview',
   sunburst:    'Tool Inspector & Parameter Value Breakdown',
   transitions: 'Trajectory Flow Diagrams & Agent Page Flows',
-  heatmaps:    'Parameter Value Friction & Schema Heatmap',
   cost:        'Resolved Agent Runs & Performance Metrics',
   experiments: 'Sticky A/B Experimentation Rules',
   traces:      'Telemetry Spans & Data Table Listing',

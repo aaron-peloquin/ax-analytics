@@ -7,7 +7,7 @@ description: Comprehensive language-agnostic HTTP API specification and SDK inte
 
 ## System Overview
 
-AX Analytics is a high-throughput, language-agnostic AI agent and web telemetry platform. It provides real-time visualization of multi-turn AI agent trajectory flows (Sankey diagrams), parameter friction heatmaps, side-by-side tool performance hubs (Sunburst charts), sticky A/B experiment resolution, and OpenTelemetry / Opik trace correlation.
+AX Analytics is a high-throughput, language-agnostic AI agent and web telemetry platform. It provides real-time visualization of multi-turn AI agent trajectory flows (Sankey diagrams), side-by-side tool performance hubs (Sunburst charts), sticky A/B experiment resolution, and OpenTelemetry / Opik trace correlation.
 
 ### Key Operational Capabilities
 
@@ -84,7 +84,7 @@ Client integrations SHOULD dynamically resolve host and app key configurations b
 | `model` | string | No | OTEL GenAI | LLM Model string (`gen_ai.request.model`, e.g., `'gpt-4o'`, `'claude-3-5-sonnet'`). |
 | `inputTokens` | number | No | OTEL GenAI | Prompt / Input token count (`gen_ai.usage.input_tokens`). |
 | `outputTokens` | number | No | OTEL GenAI | Completion / Output token count (`gen_ai.usage.output_tokens`). |
-| `params` | object | No | Dimension | Tool JSON parameters. Evaluated in Sunburst outer ring with the ≥ 8% share threshold rule and Parameter Heatmaps. |
+| `params` | object | No | Dimension | Tool JSON parameters. Evaluated in Sunburst outer ring with the ≥ 8% share threshold rule. |
 | `results` | object | No | Payload | Output JSON result object or LLM output content. |
 | `statusCode` | Enum | No | Dimension | Outcome status (`SUCCESS`, `PARAMETER_ERROR`, `TIMEOUT`, `AUTH_DENIED`, `MODEL_REFUSAL`, `ASSERTION_FAILED`). Feeds Successful vs Failed Sunburst hubs. |
 | `executionTimeMs` | number | No | Metric | Turn duration in milliseconds. Converted to Seconds to Resolution (`executionTimeMs / 1000`) on outcome cards. |
