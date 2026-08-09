@@ -1,12 +1,12 @@
 # AX Analytics — Agent Experience Analytics Platform
 
-> **Open-source, self-hosted telemetry platform for AI agent developers.** Ingest tool call traces, observe agent session trajectories, run sticky A/B experiments, and inspect parameter-level performance data — all in a Cyberpunk Neon Purple dashboard.
+> **Proof-of-concept combined web + agent telemetry platform.** Ingest tool call traces, observe agent session trajectories, run sticky A/B experiments, and inspect parameter-level performance data — all in a Cyberpunk Neon Purple dashboard. Based on the [AX Analytics article](https://gist.github.com/aaron-peloquin/721ccf2b09a22c454395194481badbf1).
 
 ---
 
 ## What Is This?
 
-**AX Analytics** is a monorepo analytics backend + admin dashboard purpose-built for **agentic AI applications**. If you're building LLM-powered agents that invoke tools, make decisions, and run multi-step sessions, this platform gives you full visibility into what they're doing, how fast, and at what cost.
+**AX Analytics** is a proof-of-concept monorepo application combining web and agent telemetry (analytics backend + admin dashboard), based on the [AX Analytics article](https://gist.github.com/aaron-peloquin/721ccf2b09a22c454395194481badbf1). Purpose-built for **agentic AI applications** and web platforms, it provides full visibility when building LLM-powered agents that invoke tools, make decisions, and run multi-step sessions — helping you track what they're doing, how fast, and at what cost.
 
 <p align="center">
   <a href="files/resolved-agent-runs.png">
