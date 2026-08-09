@@ -30,6 +30,7 @@ export function App(): React.ReactElement {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeState>({ preset: 'all' });
   const [selectedEntityId, setSelectedEntityId] = useState<string>('all');
+  const [selectedAppKey, setSelectedAppKey] = useState<string>('all');
   const [timeGrouping, setTimeGrouping] = useState<TimeGroupingInterval>('5m');
   const { data, loading, refresh } = useAnalyticsData(300000);
 
@@ -54,9 +55,13 @@ export function App(): React.ReactElement {
 
   const rawEvents = data?.rawEvents || [];
   const dateFilteredEvents = filterEventsByDateRange(rawEvents, dateRange);
-  const filteredEvents = filterEventsByEntity(dateFilteredEvents, selectedEntityId);
+  const entityFilteredEvents = filterEventsByEntity(dateFilteredEvents, selectedEntityId);
+  const filteredEvents = selectedAppKey === 'all'
+    ? entityFilteredEvents
+    : entityFilteredEvents.filter(e => e.appKey === selectedAppKey);
 
   const totalCost = filteredEvents.reduce((acc, e) => acc + (e.tokenCost || 0), 0);
+
   
   const transitions: Record<string, number> = {};
   const parameterFrequency: Record<string, number> = {};
@@ -96,8 +101,10 @@ export function App(): React.ReactElement {
           totalEvents={filteredEvents.length}
           dateRange={dateRange}
           selectedEntityId={selectedEntityId}
+          selectedAppKey={selectedAppKey}
           onDateRangeChange={setDateRange}
           onEntityChange={setSelectedEntityId}
+          onAppKeyChange={setSelectedAppKey}
           onRefresh={refresh}
           onToggleMobileNav={() => setIsMobileOpen(!isMobileOpen)}
         />

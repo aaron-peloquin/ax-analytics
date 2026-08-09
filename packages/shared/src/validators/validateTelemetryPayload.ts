@@ -5,8 +5,10 @@ export function validateTelemetryPayload(payload: unknown): payload is Partial<T
     return false;
   }
   const p = payload as Record<string, unknown>;
-  const hasEntityId = typeof p.entityId === 'string' && p.entityId.trim().length > 0;
-  const hasValidSessionId = p.sessionId === undefined || p.sessionId === null || typeof p.sessionId === 'string';
-  return hasEntityId && hasValidSessionId;
+  const entityIdVal = p.entityId || p.entity_id;
+  const hasEntityId = typeof entityIdVal === 'string' && String(entityIdVal).trim().length > 0;
+  const hasValidSessionId = p.sessionId === undefined || p.sessionId === null || typeof p.sessionId === 'string' || typeof p.session_id === 'string';
+  return Boolean(hasEntityId && hasValidSessionId);
 }
+
 

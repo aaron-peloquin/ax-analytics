@@ -2,6 +2,7 @@ import React from 'react';
 import { RefreshCw, Menu } from 'lucide-react';
 import { DateRangePicker } from './DateRangePicker';
 import { EntityFilter } from './EntityFilter';
+import { AppKeyFilter } from './AppKeyFilter';
 import { DateRangeState } from '../utils/filterEventsByDateRange';
 import { TelemetryEvent } from '@ax-analytics/shared';
 
@@ -11,13 +12,15 @@ export interface TopNavProps {
   readonly totalEvents: number;
   readonly dateRange: DateRangeState;
   readonly selectedEntityId: string;
+  readonly selectedAppKey: string;
   readonly onDateRangeChange: (range: DateRangeState) => void;
   readonly onEntityChange: (entityId: string) => void;
+  readonly onAppKeyChange: (appKey: string) => void;
   readonly onRefresh: () => void;
   readonly onToggleMobileNav?: () => void;
 }
 
-export function TopNav({ activeTab, events, totalEvents, dateRange, selectedEntityId, onDateRangeChange, onEntityChange, onRefresh, onToggleMobileNav }: TopNavProps): React.ReactElement {
+export function TopNav({ activeTab, events, totalEvents, dateRange, selectedEntityId, selectedAppKey, onDateRangeChange, onEntityChange, onAppKeyChange, onRefresh, onToggleMobileNav }: TopNavProps): React.ReactElement {
   const pageTitles: Record<string, string> = {
     overview: 'Traffic & Operational Telemetry Overview',
     sunburst: 'Tool Inspector & Parameter Value Breakdown',
@@ -56,9 +59,12 @@ export function TopNav({ activeTab, events, totalEvents, dateRange, selectedEnti
       </div>
 
       <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap sm:flex-nowrap max-w-full">
+        <AppKeyFilter events={events} selectedAppKey={selectedAppKey} onChange={onAppKeyChange} />
+
         <EntityFilter events={events} selectedEntityId={selectedEntityId} onChange={onEntityChange} />
 
         <DateRangePicker range={dateRange} onChange={onDateRangeChange} />
+
 
         <span className="hidden lg:inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full bg-purple-950 text-fuchsia-200 border border-purple-500/50 font-mono flex-shrink-0">
           <span className="w-2 h-2 rounded-full bg-fuchsia-400 animate-ping" aria-hidden="true"></span>

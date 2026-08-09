@@ -20,28 +20,52 @@ export async function runSmokeTest(): Promise<void> {
 
     console.log('Testing cURL HTTP API endpoints against live ingestion server...');
 
-    console.log('1. Posting Ingestion Event via POST /v1/telemetry/event...');
+    console.log('1a. Posting Ingestion Event with full OTEL GenAI fields via POST /v1/telemetry/event...');
     const trackRes = await fetch(`${endpoint}/v1/telemetry/event`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         appKey: 'app_live_8832109',
         sessionId: 'sess_smoke_test',
+        multiagentIdentity: 'smoke-orchestrator',
         entityId: 'smoke-agent-01',
         entityType: 'agent',
         eventType: 'tool_call',
         invokedToolName: 'search_products',
         previousToolName: 'get_skill_doc',
+        provider: 'openai',
+        model: 'gpt-4o',
+        inputTokens: 500,
+        outputTokens: 120,
         params: { query: 'laptop' },
         tokenCost: 0.0035,
         executionTimeMs: 250
       })
     });
-    const trackJson = (await trackRes.json()) as { status: string };
-    if (trackRes.status !== 202 || trackJson.status !== 'queued') {
+    const trackJson = (await trackRes.json()) as { status: string; sessionId: string };
+    if (trackRes.status !== 202 || trackJson.status !== 'queued' || trackJson.sessionId !== 'sess_smoke_test') {
       throw new Error(`Track event failed! Response: ${JSON.stringify(trackJson)}`);
     }
-    console.log('✓ Ingestion event PASSED:', trackJson);
+    console.log('✓ Ingestion event with full OTEL GenAI fields PASSED:', trackJson);
+
+    console.log('1b. Posting Ingestion Event WITHOUT sessionId to test server auto-generation...');
+    const autoSessRes = await fetch(`${endpoint}/v1/telemetry/event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        appKey: 'app_live_8832109',
+        entityId: 'smoke-agent-02',
+        eventType: 'llm_inference',
+        provider: 'anthropic',
+        model: 'claude-3-5-sonnet',
+        tokenCost: 0.0012
+      })
+    });
+    const autoSessJson = (await autoSessRes.json()) as { status: string; sessionId: string };
+    if (autoSessRes.status !== 202 || !autoSessJson.sessionId?.startsWith('ax_sess_')) {
+      throw new Error(`Auto sessionId generation failed! Response: ${JSON.stringify(autoSessJson)}`);
+    }
+    console.log('✓ Auto sessionId generation PASSED:', autoSessJson);
 
     console.log('2. Requesting Sticky A/B Experiment Variant via POST /v1/experiments/variant...');
     const variantRes = await fetch(`${endpoint}/v1/experiments/variant`, {

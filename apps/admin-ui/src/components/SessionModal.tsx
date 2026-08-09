@@ -119,8 +119,27 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
                       </div>
 
                       {/* Span Meta */}
-                      <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-purple-300">
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-purple-300">
+                        {evt.appKey && (
+                          <span className="px-2 py-0.5 rounded bg-purple-950 text-cyan-300 border border-purple-800 text-[10px]">
+                            app: {evt.appKey}
+                          </span>
+                        )}
+                        {evt.multiagentIdentity && (
+                          <span className="px-2 py-0.5 rounded bg-fuchsia-950 text-fuchsia-300 border border-fuchsia-800 text-[10px]">
+                            orch: {evt.multiagentIdentity}
+                          </span>
+                        )}
                         <span className="flex items-center gap-1"><Tag className="w-3 h-3 text-purple-500" />{evt.entityId}</span>
+                        {evt.provider && (
+                          <span className="text-purple-300 font-bold">[{evt.provider}{evt.model ? ` / ${evt.model}` : ''}]</span>
+                        )}
+                        {evt.inputTokens !== undefined && (
+                          <span className="text-purple-400">prompt: {evt.inputTokens} tok</span>
+                        )}
+                        {evt.outputTokens !== undefined && (
+                          <span className="text-fuchsia-400">completion: {evt.outputTokens} tok</span>
+                        )}
                         {evt.executionTimeMs !== undefined && (
                           <span className="flex items-center gap-1 text-pink-300"><Clock className="w-3 h-3" />{evt.executionTimeMs} ms</span>
                         )}

@@ -12,15 +12,19 @@ export function handleTelemetryEvent(clickhouseStore: ClickhouseStore) {
     }
 
     const raw = payload as Record<string, unknown>;
-    const sessionId = (typeof raw.sessionId === 'string' && raw.sessionId.trim().length > 0)
-      ? raw.sessionId
+    const rawSessId = raw.sessionId || raw.session_id;
+    const sessionId = (typeof rawSessId === 'string' && String(rawSessId).trim().length > 0)
+      ? String(rawSessId)
       : `ax_sess_${randomUUID()}`;
+
+    const entityId = (raw.entityId || raw.entity_id) as string;
+    const appKey = (raw.appKey || raw.app_key) as string || 'adm_live_8832109';
 
     const event: TelemetryEvent = {
       ...(raw as unknown as TelemetryEvent),
       sessionId,
-      entityId: raw.entityId as string,
-      appKey: (raw.appKey as string) || 'adm_live_8832109',
+      entityId,
+      appKey,
       entityType: (raw.entityType as 'human' | 'agent') || 'agent',
       timestamp: (raw.timestamp as string) || new Date().toISOString()
     };

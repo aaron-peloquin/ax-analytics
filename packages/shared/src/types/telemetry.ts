@@ -16,6 +16,7 @@ export interface TelemetryEvent {
   readonly entityType: EntityType;
   readonly clientString?: string;
   readonly eventType: string;
+  readonly multiagentIdentity?: string;
   readonly invokedToolName?: string;
   readonly previousToolName?: string;
   readonly params?: Readonly<Record<string, unknown>>;
@@ -23,14 +24,19 @@ export interface TelemetryEvent {
   readonly statusCode?: EventStatusCode;
   readonly tokenCost?: number;
   readonly executionTimeMs?: number;
+  readonly inputTokens?: number;
+  readonly outputTokens?: number;
+  readonly provider?: string;
+  readonly model?: string;
   readonly otelTraceId?: string;
   readonly otelSpanId?: string;
   readonly assignedVariant?: string;
 }
 
 export interface AgentToolCallPayload {
-  readonly sessionId: string;
+  readonly sessionId?: string;
   readonly agentIdentity: string;
+  readonly multiagentIdentity?: string;
   readonly toolName: string;
   readonly previousToolName?: string;
   readonly params?: Readonly<Record<string, unknown>>;
@@ -38,7 +44,12 @@ export interface AgentToolCallPayload {
   readonly statusCode?: EventStatusCode;
   readonly tokenCost?: number;
   readonly executionTimeMs?: number;
+  readonly inputTokens?: number;
+  readonly outputTokens?: number;
+  readonly provider?: string;
+  readonly model?: string;
   readonly otelTraceId?: string;
   readonly otelSpanId?: string;
   readonly assignedVariant?: string;
 }
+
