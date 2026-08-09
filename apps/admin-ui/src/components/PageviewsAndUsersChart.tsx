@@ -8,7 +8,7 @@ export interface PageviewsAndUsersChartProps {
   readonly timeGrouping?: TimeGroupingInterval;
 }
 
-export function PageviewsAndUsersChart({ events, timeGrouping = '5m' }: PageviewsAndUsersChartProps): React.ReactElement {
+export function PageviewsAndUsersChart({ events, timeGrouping = '1h' }: PageviewsAndUsersChartProps): React.ReactElement {
   const grouped = useMemo(
     () => groupEventsByTimeInterval(events, timeGrouping),
     [events, timeGrouping]

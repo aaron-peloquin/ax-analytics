@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAnalyticsData } from './hooks/useAnalyticsData';
 import { filterEventsByDateRange, DateRangeState } from './utils/filterEventsByDateRange';
 import { filterEventsByEntity } from './utils/filterEventsByEntity';
 import { TimeGroupingInterval } from './utils/groupEventsByTimeInterval';
+import { determineTimeGrouping } from './utils/determineTimeGrouping';
 import { Sidebar } from './components/Sidebar';
 import { TopNav } from './components/TopNav';
 import { TrafficOverview } from './components/TrafficOverview';
@@ -31,7 +32,7 @@ export function App(): React.ReactElement {
   const [dateRange, setDateRange] = useState<DateRangeState>({ preset: 'all' });
   const [selectedEntityId, setSelectedEntityId] = useState<string>('all');
   const [selectedAppKey, setSelectedAppKey] = useState<string>('all');
-  const [timeGrouping, setTimeGrouping] = useState<TimeGroupingInterval>('5m');
+  const [timeGrouping, setTimeGrouping] = useState<TimeGroupingInterval>('1h');
   const { data, loading, refresh } = useAnalyticsData(300000);
 
   const handleTabChange = (tab: string) => {
@@ -59,6 +60,14 @@ export function App(): React.ReactElement {
   const filteredEvents = selectedAppKey === 'all'
     ? entityFilteredEvents
     : entityFilteredEvents.filter(e => e.appKey === selectedAppKey);
+
+  const autoTimeGrouping = useMemo(() => {
+    return determineTimeGrouping(filteredEvents, dateRange);
+  }, [filteredEvents, dateRange]);
+
+  useEffect(() => {
+    setTimeGrouping(autoTimeGrouping);
+  }, [autoTimeGrouping]);
 
   const totalCost = filteredEvents.reduce((acc, e) => acc + (e.tokenCost || 0), 0);
 
@@ -102,9 +111,12 @@ export function App(): React.ReactElement {
           dateRange={dateRange}
           selectedEntityId={selectedEntityId}
           selectedAppKey={selectedAppKey}
+          timeGrouping={timeGrouping}
+          autoTimeGrouping={autoTimeGrouping}
           onDateRangeChange={setDateRange}
           onEntityChange={setSelectedEntityId}
           onAppKeyChange={setSelectedAppKey}
+          onTimeGroupingChange={setTimeGrouping}
           onRefresh={refresh}
           onToggleMobileNav={() => setIsMobileOpen(!isMobileOpen)}
         />
@@ -121,7 +133,6 @@ export function App(): React.ReactElement {
                 <TrafficOverview
                   events={filteredEvents}
                   timeGrouping={timeGrouping}
-                  onTimeGroupingChange={setTimeGrouping}
                 />
               )}
               {activeTab === 'sunburst' && <ToolSunburstInspector events={filteredEvents} />}

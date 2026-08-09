@@ -1,6 +1,6 @@
 import { TelemetryEvent } from '@ax-analytics/shared';
 
-export type TimeGroupingInterval = '5m' | '30m' | '1h' | '1d';
+export type TimeGroupingInterval = '5m' | '30m' | '1h' | '1d' | '1w';
 
 export interface GroupedAnalyticsResult {
   readonly times: readonly string[];
@@ -33,6 +33,20 @@ export function groupEventsByTimeInterval(
     };
   }
 
+  // Calculate event span to format '1h' labels cleanly
+  let minEvtTime = Infinity;
+  let maxEvtTime = -Infinity;
+  for (const evt of events) {
+    if (evt.timestamp) {
+      const t = new Date(evt.timestamp).getTime();
+      if (!isNaN(t)) {
+        if (t < minEvtTime) minEvtTime = t;
+        if (t > maxEvtTime) maxEvtTime = t;
+      }
+    }
+  }
+  const isMultiDaySpan = (maxEvtTime - minEvtTime) > 24 * 60 * 60 * 1000;
+
   const buckets: Record<number, MutableBucket> = {};
 
   for (const evt of events) {
@@ -48,7 +62,18 @@ export function groupEventsByTimeInterval(
       label = new Date(bucketMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else if (interval === '1h') {
       bucketMs = Math.floor(rawMs / (60 * 60 * 1000)) * (60 * 60 * 1000);
-      label = new Date(bucketMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (isMultiDaySpan) {
+        label = new Date(bucketMs).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } else {
+        label = new Date(bucketMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+    } else if (interval === '1w') {
+      const d = new Date(rawMs);
+      d.setHours(0, 0, 0, 0);
+      const dayOfWeek = d.getDay();
+      d.setDate(d.getDate() - dayOfWeek);
+      bucketMs = d.getTime();
+      label = `Week of ${new Date(bucketMs).toLocaleDateString([], { month: 'short', day: 'numeric' })}`;
     } else {
       const d = new Date(rawMs);
       d.setHours(0, 0, 0, 0);

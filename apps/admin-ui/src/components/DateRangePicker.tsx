@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Calendar, ChevronDown, Check } from 'lucide-react';
 import { DateRangeState } from '../utils/filterEventsByDateRange';
 import { calculatePrefabDateRange } from '../utils/calculatePrefabDateRange';
 
@@ -8,84 +8,243 @@ export interface DateRangePickerProps {
   readonly onChange: (range: DateRangeState) => void;
 }
 
+type Preset = DateRangeState['preset'];
+
+interface PresetOption {
+  readonly value: Preset;
+  readonly label: string;
+  readonly short: string;
+}
+
+const PRESETS: readonly PresetOption[] = [
+  { value: '24h', label: 'Last 24 Hours', short: 'Last 24h' },
+  { value: '7d',  label: 'Last 7 Days',   short: 'Last 7d'  },
+  { value: '30d', label: 'Last 30 Days',  short: 'Last 30d' },
+  { value: 'all', label: 'All Time',      short: 'All Time' },
+  { value: 'custom', label: 'Custom Range', short: 'Custom' },
+];
+
+const formatDateLabel = (range: DateRangeState): string => {
+  if (range.preset !== 'custom') {
+    return PRESETS.find(p => p.value === range.preset)?.label ?? 'All Time';
+  }
+  if (range.startDate && range.endDate) {
+    const fmt = (d: string) => {
+      const date = new Date(d + 'T00:00:00');
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+    return `${fmt(range.startDate)} – ${fmt(range.endDate)}`;
+  }
+  if (range.startDate) return `From ${range.startDate}`;
+  if (range.endDate)   return `Until ${range.endDate}`;
+  return 'Custom Range';
+};
+
 export function DateRangePicker({ range, onChange }: DateRangePickerProps): React.ReactElement {
-  const handlePresetChange = (preset: DateRangeState['preset']) => {
-    if (preset === 'custom') {
-      onChange({ ...range, preset: 'custom' });
-      return;
+  const [open, setOpen] = useState(false);
+  const [pendingPreset, setPendingPreset] = useState<Preset>(range.preset);
+  const [pendingStart, setPendingStart] = useState(range.startDate ?? '');
+  const [pendingEnd, setPendingEnd]   = useState(range.endDate   ?? '');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync pending state when external range changes
+  useEffect(() => {
+    setPendingPreset(range.preset);
+    setPendingStart(range.startDate ?? '');
+    setPendingEnd(range.endDate ?? '');
+  }, [range]);
+
+  // Close on outside click / Escape
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKey);
+    document.addEventListener('mousedown', handleClick);
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [open]);
+
+  const handlePresetClick = useCallback((preset: Preset) => {
+    setPendingPreset(preset);
+    if (preset !== 'custom') {
+      const dates = calculatePrefabDateRange(preset);
+      setPendingStart(dates.startDate ?? '');
+      setPendingEnd(dates.endDate ?? '');
     }
-    const dates = calculatePrefabDateRange(preset);
-    onChange({
-      preset,
-      startDate: dates.startDate,
-      endDate: dates.endDate
-    });
-  };
+  }, []);
 
-  const handleStartDateChange = (val: string) => {
-    onChange({
-      preset: 'custom',
-      startDate: val,
-      endDate: range.endDate || ''
-    });
-  };
+  const handleApply = useCallback(() => {
+    if (pendingPreset === 'custom') {
+      onChange({ preset: 'custom', startDate: pendingStart, endDate: pendingEnd });
+    } else {
+      const dates = calculatePrefabDateRange(pendingPreset);
+      onChange({ preset: pendingPreset, startDate: dates.startDate, endDate: dates.endDate });
+    }
+    setOpen(false);
+  }, [pendingPreset, pendingStart, pendingEnd, onChange]);
 
-  const handleEndDateChange = (val: string) => {
-    onChange({
-      preset: 'custom',
-      startDate: range.startDate || '',
-      endDate: val
-    });
-  };
+  const handleCancel = useCallback(() => {
+    // Reset pending back to committed state
+    setPendingPreset(range.preset);
+    setPendingStart(range.startDate ?? '');
+    setPendingEnd(range.endDate ?? '');
+    setOpen(false);
+  }, [range]);
+
+  const label = formatDateLabel(range);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 bg-[#140a28] px-2.5 sm:px-3 py-1.5 rounded-xl border border-purple-900/60 text-xs max-w-full">
-      <div className="flex items-center gap-1.5">
-        <Calendar className="w-4 h-4 text-fuchsia-400 flex-shrink-0" aria-hidden="true" />
-        <label htmlFor="global-date-range-select" className="text-purple-300 font-semibold cursor-pointer">
-          Range:
-        </label>
-        <select
-          id="global-date-range-select"
-          value={range.preset}
-          aria-label="Filter events by date range"
-          onChange={(e) => handlePresetChange(e.target.value as DateRangeState['preset'])}
-          className="bg-[#0c051a] text-fuchsia-300 font-mono font-bold focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer rounded px-2 py-1 border border-purple-900/40 text-xs"
+    <div ref={containerRef} className="relative">
+      {/* Collapsed Pill Button */}
+      <button
+        id="global-date-range-pill"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Date range: ${label}. Click to change`}
+        onClick={() => setOpen(prev => !prev)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all duration-150 whitespace-nowrap cursor-pointer select-none
+          ${open
+            ? 'bg-fuchsia-950/70 border-fuchsia-500/70 text-fuchsia-200 shadow-[0_0_12px_rgba(217,70,239,0.25)]'
+            : 'bg-[#140a28] border-purple-900/60 text-purple-200 hover:border-fuchsia-500/50 hover:text-fuchsia-200 hover:bg-fuchsia-950/40'
+          }`}
+      >
+        <Calendar className="w-3.5 h-3.5 text-fuchsia-400 flex-shrink-0" aria-hidden="true" />
+        <span>{label}</span>
+        <ChevronDown
+          className={`w-3 h-3 text-purple-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {/* Floating Dropdown Panel */}
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Date range selector"
+          className="absolute top-full left-0 mt-2 z-50 flex rounded-2xl border border-purple-800/60 bg-[#0e0720]/95 backdrop-blur-xl shadow-[0_8px_40px_rgba(139,92,246,0.25)] overflow-hidden"
+          style={{ minWidth: '420px' }}
         >
-          <option value="24h" className="bg-[#140a28] text-purple-200">Last 24 Hours</option>
-          <option value="7d" className="bg-[#140a28] text-purple-200">Last 7 Days</option>
-          <option value="30d" className="bg-[#140a28] text-purple-200">Last 30 Days</option>
-          <option value="all" className="bg-[#140a28] text-purple-200">All Time</option>
-          <option value="custom" className="bg-[#140a28] text-purple-200">Custom Range</option>
-        </select>
-      </div>
+          {/* Left: Preset List */}
+          <div
+            role="listbox"
+            aria-label="Date range presets"
+            className="flex flex-col py-2 border-r border-purple-900/50"
+            style={{ minWidth: '180px' }}
+          >
+            <p className="px-4 pt-1 pb-2 text-[10px] font-bold uppercase tracking-widest text-purple-500">
+              Preset
+            </p>
+            {PRESETS.map(preset => {
+              const isSelected = pendingPreset === preset.value;
+              return (
+                <button
+                  key={preset.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => handlePresetClick(preset.value)}
+                  className={`flex items-center justify-between w-full px-4 py-2 text-sm text-left transition-colors duration-100 cursor-pointer
+                    ${isSelected
+                      ? 'bg-fuchsia-900/40 text-fuchsia-200 font-semibold'
+                      : 'text-purple-200 hover:bg-purple-900/30 hover:text-white'
+                    }`}
+                >
+                  <span>{preset.label}</span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-fuchsia-400 flex-shrink-0" aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-purple-900/60 pt-1.5 sm:pt-0 pl-0 sm:pl-2 w-full sm:w-auto">
-        <label htmlFor="start-date-input" className="text-purple-300 font-medium text-xs">
-          From:
-        </label>
-        <input
-          id="start-date-input"
-          type="date"
-          value={range.startDate || ''}
-          onChange={(e) => handleStartDateChange(e.target.value)}
-          aria-label="Start date"
-          className="bg-[#0c051a] text-fuchsia-300 font-mono focus:outline-none focus:ring-1 focus:ring-fuchsia-400 rounded px-1.5 py-1 border border-purple-900/40 text-xs max-w-[125px] sm:max-w-none"
-        />
+          {/* Right: Custom Date Inputs + Apply/Cancel */}
+          <div className="flex flex-col flex-1 p-4 gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-purple-500 mb-3">
+                Custom Dates
+              </p>
 
-        <label htmlFor="end-date-input" className="text-purple-300 font-medium text-xs ml-1">
-          To:
-        </label>
-        <input
-          id="end-date-input"
-          type="date"
-          value={range.endDate || ''}
-          onChange={(e) => handleEndDateChange(e.target.value)}
-          aria-label="End date"
-          className="bg-[#0c051a] text-fuchsia-300 font-mono focus:outline-none focus:ring-1 focus:ring-fuchsia-400 rounded px-1.5 py-1 border border-purple-900/40 text-xs max-w-[125px] sm:max-w-none"
-        />
-      </div>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="date-picker-start"
+                    className={`text-xs font-semibold transition-colors ${pendingPreset === 'custom' ? 'text-fuchsia-300' : 'text-purple-600'}`}
+                  >
+                    Start date
+                  </label>
+                  <input
+                    id="date-picker-start"
+                    type="date"
+                    value={pendingStart}
+                    disabled={pendingPreset !== 'custom'}
+                    onChange={e => { setPendingPreset('custom'); setPendingStart(e.target.value); }}
+                    aria-label="Custom start date"
+                    className={`bg-[#0c051a] font-mono text-xs px-3 py-2 rounded-lg border focus:outline-none focus:ring-1 focus:ring-fuchsia-400 transition-opacity
+                      ${pendingPreset === 'custom'
+                        ? 'text-fuchsia-300 border-purple-700/60 opacity-100'
+                        : 'text-purple-700 border-purple-900/40 opacity-40 cursor-not-allowed'
+                      }`}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="date-picker-end"
+                    className={`text-xs font-semibold transition-colors ${pendingPreset === 'custom' ? 'text-fuchsia-300' : 'text-purple-600'}`}
+                  >
+                    End date
+                  </label>
+                  <input
+                    id="date-picker-end"
+                    type="date"
+                    value={pendingEnd}
+                    disabled={pendingPreset !== 'custom'}
+                    onChange={e => { setPendingPreset('custom'); setPendingEnd(e.target.value); }}
+                    aria-label="Custom end date"
+                    className={`bg-[#0c051a] font-mono text-xs px-3 py-2 rounded-lg border focus:outline-none focus:ring-1 focus:ring-fuchsia-400 transition-opacity
+                      ${pendingPreset === 'custom'
+                        ? 'text-fuchsia-300 border-purple-700/60 opacity-100'
+                        : 'text-purple-700 border-purple-900/40 opacity-40 cursor-not-allowed'
+                      }`}
+                  />
+                </div>
+              </div>
+
+              {pendingPreset !== 'custom' && (
+                <p className="mt-3 text-[11px] text-purple-600 italic">
+                  Select "Custom Range" above to enter dates manually.
+                </p>
+              )}
+            </div>
+
+            {/* Apply / Cancel */}
+            <div className="flex gap-2 mt-auto pt-2 border-t border-purple-900/40">
+              <button
+                onClick={handleCancel}
+                className="flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-purple-800/60 text-purple-300 hover:bg-purple-900/30 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                id="date-picker-apply"
+                onClick={handleApply}
+                className="flex-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-fuchsia-700 hover:bg-fuchsia-600 text-white transition-colors shadow-[0_0_10px_rgba(217,70,239,0.3)]"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

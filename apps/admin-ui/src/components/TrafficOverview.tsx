@@ -3,19 +3,16 @@ import ReactECharts from 'echarts-for-react';
 import { Activity, Zap, Clock, Users, Eye } from 'lucide-react';
 import { TelemetryEvent } from '@ax-analytics/shared';
 import { PageviewsAndUsersChart } from './PageviewsAndUsersChart';
-import { TimeGroupingDropdown } from './TimeGroupingDropdown';
 import { groupEventsByTimeInterval, TimeGroupingInterval } from '../utils/groupEventsByTimeInterval';
 
 export interface TrafficOverviewProps {
   readonly events: readonly TelemetryEvent[];
   readonly timeGrouping?: TimeGroupingInterval;
-  readonly onTimeGroupingChange?: (interval: TimeGroupingInterval) => void;
 }
 
 export function TrafficOverview({
   events,
-  timeGrouping = '5m',
-  onTimeGroupingChange
+  timeGrouping = '1h'
 }: TrafficOverviewProps): React.ReactElement {
   const toolCallCount = events.filter(e => e.eventType === 'tool_call').length;
   
@@ -154,15 +151,9 @@ export function TrafficOverview({
       <PageviewsAndUsersChart events={events} timeGrouping={timeGrouping} />
 
       <div className="neon-panel p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-white font-heading">Real-Time Event Ingestion Stream</h2>
-            <p className="text-xs text-purple-200 font-medium mt-0.5">Live time-series telemetry events streaming in real time</p>
-          </div>
-
-          {onTimeGroupingChange && (
-            <TimeGroupingDropdown interval={timeGrouping} onChange={onTimeGroupingChange} />
-          )}
+        <div>
+          <h2 className="text-xl font-bold text-white font-heading">Real-Time Event Ingestion Stream</h2>
+          <p className="text-xs text-purple-200 font-medium mt-0.5">Live time-series telemetry events streaming in real time</p>
         </div>
 
         <div className="w-full h-80">
