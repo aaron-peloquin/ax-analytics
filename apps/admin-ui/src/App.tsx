@@ -27,6 +27,7 @@ export function App(): React.ReactElement {
 
   const [activeTab, setActiveTab] = useState<string>(getInitialTab);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeState>({ preset: 'all' });
   const [selectedEntityId, setSelectedEntityId] = useState<string>('all');
   const [timeGrouping, setTimeGrouping] = useState<TimeGroupingInterval>('5m');
@@ -76,16 +77,18 @@ export function App(): React.ReactElement {
   const feedback = data?.feedback || [];
 
   return (
-    <div className="min-h-screen bg-[#07030d] text-slate-100 flex font-sans">
+    <div className="min-h-screen bg-[#07030d] text-slate-100 flex font-sans max-w-full overflow-x-hidden">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        isMobileOpen={isMobileOpen}
+        onCloseMobile={() => setIsMobileOpen(false)}
       />
 
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-        isCollapsed ? 'pl-16' : 'pl-56'
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 pl-0 ${
+        isCollapsed ? 'md:pl-16' : 'md:pl-56'
       }`}>
         <TopNav
           activeTab={activeTab}
@@ -96,9 +99,10 @@ export function App(): React.ReactElement {
           onDateRangeChange={setDateRange}
           onEntityChange={setSelectedEntityId}
           onRefresh={refresh}
+          onToggleMobileNav={() => setIsMobileOpen(!isMobileOpen)}
         />
 
-        <main className="flex-1 p-8 space-y-6 overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-6 md:p-8 space-y-6 overflow-y-auto w-full max-w-full">
           {loading && !data ? (
             <div className="py-24 text-center space-y-3">
               <div className="w-10 h-10 border-2 border-fuchsia-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -124,7 +128,7 @@ export function App(): React.ReactElement {
           )}
         </main>
 
-        <footer className="border-t border-purple-900/50 py-4 px-8 text-center text-xs text-purple-200 font-semibold bg-[#07030d]">
+        <footer className="border-t border-purple-900/50 py-4 px-4 sm:px-8 text-center text-xs text-purple-200 font-semibold bg-[#07030d]">
           <p>AX Analytics Platform</p>
         </footer>
       </div>

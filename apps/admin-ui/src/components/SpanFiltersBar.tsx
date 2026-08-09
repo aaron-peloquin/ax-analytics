@@ -38,7 +38,7 @@ export function SpanFiltersBar({ events, filters, onChange }: SpanFiltersBarProp
         onChange={e => update({ search: e.target.value })}
         placeholder="Search session, tool, entity…"
         aria-label="Search telemetry spans"
-        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-3 py-1.5 text-xs font-mono text-purple-100 placeholder-purple-400/60 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 w-52"
+        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-3 py-1.5 text-xs font-mono text-purple-100 placeholder-purple-400/60 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 w-full sm:w-52"
       />
 
       {/* Status Code */}
@@ -47,7 +47,7 @@ export function SpanFiltersBar({ events, filters, onChange }: SpanFiltersBarProp
         id="span-filter-status"
         value={filters.statusCode}
         onChange={e => update({ statusCode: e.target.value })}
-        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-2 py-1.5 text-xs font-mono text-purple-100 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer"
+        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-2 py-1.5 text-xs font-mono text-purple-100 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer w-full sm:w-auto flex-1 min-w-[120px]"
       >
         {STATUS_CODES.map(s => (
           <option key={s} value={s} className="bg-[#140a28]">{s === 'ALL' ? 'All Statuses' : s}</option>
@@ -60,7 +60,7 @@ export function SpanFiltersBar({ events, filters, onChange }: SpanFiltersBarProp
         id="span-filter-entity"
         value={filters.entityType}
         onChange={e => update({ entityType: e.target.value })}
-        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-2 py-1.5 text-xs font-mono text-purple-100 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer"
+        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-2 py-1.5 text-xs font-mono text-purple-100 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer w-full sm:w-auto flex-1 min-w-[120px]"
       >
         {entityTypes.map(t => (
           <option key={t} value={t} className="bg-[#140a28]">{t === 'ALL' ? 'All Entity Types' : t}</option>
@@ -73,7 +73,7 @@ export function SpanFiltersBar({ events, filters, onChange }: SpanFiltersBarProp
         id="span-filter-event"
         value={filters.eventType}
         onChange={e => update({ eventType: e.target.value })}
-        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-2 py-1.5 text-xs font-mono text-purple-100 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer"
+        className="bg-[#140a28] border border-purple-800/50 rounded-lg px-2 py-1.5 text-xs font-mono text-purple-100 focus:outline-none focus:ring-1 focus:ring-fuchsia-400 cursor-pointer w-full sm:w-auto flex-1 min-w-[120px]"
       >
         {eventTypes.map(t => (
           <option key={t} value={t} className="bg-[#140a28]">{t === 'ALL' ? 'All Event Types' : t}</option>

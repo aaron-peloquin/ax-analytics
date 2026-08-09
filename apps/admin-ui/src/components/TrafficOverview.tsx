@@ -102,7 +102,7 @@ export function TrafficOverview({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5">
         <div className="neon-panel p-5 border-purple-500/40">
           <div className="flex justify-between items-center text-purple-200">
             <span className="text-xs font-bold uppercase tracking-wider text-purple-200">Total Telemetry Events</span>

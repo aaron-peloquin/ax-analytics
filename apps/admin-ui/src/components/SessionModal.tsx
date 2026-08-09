@@ -25,22 +25,22 @@ export function SessionModal({ sessionId, allEvents, onClose }: SessionModalProp
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={`Session ${sessionId} full telemetry view`}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="neon-panel w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-purple-500/40">
+      <div className="neon-panel w-[95vw] sm:w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-purple-500/40">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-purple-900/60 bg-[#0c051a] flex-shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-purple-900/60 bg-[#0c051a] flex-shrink-0">
           <div>
-            <h2 className="text-base font-bold text-white font-heading">Full Session Timeline</h2>
-            <p className="text-xs font-mono text-fuchsia-300 mt-0.5">{sessionId}</p>
+            <h2 className="text-sm sm:text-base font-bold text-white font-heading">Full Session Timeline</h2>
+            <p className="text-xs font-mono text-fuchsia-300 mt-0.5 truncate max-w-[200px] sm:max-w-none">{sessionId}</p>
           </div>
 
           {/* Session Stats */}
-          <div className="hidden sm:flex items-center gap-4 text-xs font-mono">
+          <div className="hidden md:flex items-center gap-3 text-xs font-mono flex-wrap">
             <span className="flex items-center gap-1.5 text-purple-200">
               <Hash className="w-3 h-3 text-purple-400" />
               <span className="font-bold text-white">{sessionEvents.length}</span> spans

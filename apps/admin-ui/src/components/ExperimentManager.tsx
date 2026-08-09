@@ -72,9 +72,9 @@ export function ExperimentManager(): React.ReactElement {
       {/* Rule List */}
       <div className="space-y-4">
         {experiments.map(exp => (
-          <div key={exp.id} className="p-4 rounded-2xl border border-purple-900/60 bg-[#140a28]/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-purple-500/40 transition-colors">
+          <div key={exp.id} className="p-4 rounded-2xl border border-purple-900/60 bg-[#140a28]/80 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:border-purple-500/40 transition-colors">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-mono text-sm font-bold text-fuchsia-300">{exp.key}</span>
                 {exp.split === 0 && (
                   <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-purple-950 text-purple-300 border border-purple-500/40">
@@ -92,14 +92,14 @@ export function ExperimentManager(): React.ReactElement {
                   </span>
                 )}
               </div>
-              <div className="text-xs text-purple-300/80 mt-1.5 space-x-4">
+              <div className="text-xs text-purple-300/80 mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
                 <span>Variant A: <strong className="text-purple-100">{exp.variantA}</strong></span>
                 <span>Variant B: <strong className="text-purple-100">{exp.variantB}</strong></span>
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              <div className="text-right">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-4 w-full lg:w-auto">
+              <div className="text-left sm:text-right">
                 <span className="text-xs text-purple-300/70 block">Current Traffic Assignment</span>
                 <span className="text-sm font-bold text-fuchsia-300 font-mono">
                   {exp.split === 0 ? '100% Variant A' : exp.split === 100 ? '100% Variant B' : `${exp.split}% to Variant B`}

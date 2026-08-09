@@ -397,7 +397,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
             </div>
           </div>
 
-          <div className="flex p-1 bg-[#0f071e] rounded-xl border border-purple-900/60 flex-wrap gap-1">
+          <div className="flex p-1 bg-[#0f071e] rounded-xl border border-purple-900/60 flex-wrap gap-1 w-full md:w-auto">
             <button
               onClick={() => setActiveFormat('curl')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
@@ -462,7 +462,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
       </div>
 
       {/* Core Concepts Breakdown Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         <div className="neon-panel p-5 border-purple-500/40">
           <div className="flex justify-between items-center text-purple-200 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-fuchsia-300">What is a user_id?</span>
@@ -522,7 +522,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
           <p className="text-xs text-purple-200 font-medium">
             Copy and paste these TypeScript <code className="text-fuchsia-300 font-mono font-bold">_v1</code> type definitions into your client codebase.
           </p>
-          <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+          <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words max-h-96">
             {tsTypesCode}
           </pre>
         </div>
@@ -546,7 +546,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
           <p className="text-xs text-purple-200 font-medium">
             Copy and paste these Pydantic v2 <code className="text-amber-300 font-mono font-bold">_v1</code> model definitions into your Python services.
           </p>
-          <pre className="p-4 rounded-xl bg-[#0a0414] border border-amber-900/50 text-xs text-amber-200 font-mono overflow-x-auto">
+          <pre className="p-4 rounded-xl bg-[#0a0414] border border-amber-900/50 text-xs text-amber-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words max-h-96">
             {pythonTypesCode}
           </pre>
         </div>
@@ -570,7 +570,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
           <p className="text-xs text-purple-200 font-medium">
             Copy and paste these Kotlin <code className="text-sky-300 font-mono font-bold">_v1</code> kotlinx.serialization data classes into your Kotlin/JVM applications.
           </p>
-          <pre className="p-4 rounded-xl bg-[#0a0414] border border-sky-900/50 text-xs text-sky-200 font-mono overflow-x-auto">
+          <pre className="p-4 rounded-xl bg-[#0a0414] border border-sky-900/50 text-xs text-sky-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words max-h-96">
             {kotlinTypesCode}
           </pre>
         </div>
@@ -594,7 +594,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
           <p className="text-xs text-purple-200 font-medium">
             Saved to <code className="text-fuchsia-300 font-mono font-bold">.agents/skills/ax-analytics-telemetry/SKILL.md</code>. Gives AI agents complete system context, operational purpose, entity naming rules, and input field contract details.
           </p>
-          <pre className="p-4 rounded-xl bg-[#0a0414] border border-fuchsia-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+          <pre className="p-4 rounded-xl bg-[#0a0414] border border-fuchsia-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words max-h-96">
             {curlSkillMarkdown}
           </pre>
         </div>
@@ -620,7 +620,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
             <p className="text-xs text-purple-200 font-medium">
               Log custom user or agent telemetry events (e.g. <code className="text-fuchsia-300 font-mono font-bold">button_click</code>, <code className="text-fuchsia-300 font-mono font-bold">modal_open</code>, <code className="text-fuchsia-300 font-mono font-bold">checkout_completed</code>) with arbitrary JSON parameters.
             </p>
-            <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+            <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words">
               {curlCustomEventCode}
             </pre>
           </div>
@@ -643,7 +643,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
             <p className="text-xs text-purple-200 font-medium">
               Page views log human entity navigation via <code className="text-sky-300 font-mono font-bold">eventType: "page_view"</code>.
             </p>
-            <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+            <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words">
               {curlPageViewCode}
             </pre>
           </div>
@@ -663,7 +663,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
                 {copiedSection === 'span-ingest' ? 'Copied!' : 'Copy cURL'}
               </button>
             </div>
-            <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+            <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words">
               {curlSpanCode}
             </pre>
           </div>
@@ -681,7 +681,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
                   Copy
                 </button>
               </div>
-              <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+              <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words">
                 {curlABCode}
               </pre>
             </div>
@@ -697,7 +697,7 @@ curl -X POST http://localhost:4400/v1/feedback \\
                   Copy
                 </button>
               </div>
-              <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono overflow-x-auto">
+              <pre className="p-4 rounded-xl bg-[#0a0414] border border-purple-900/50 text-xs text-fuchsia-200 font-mono max-w-full overflow-x-auto whitespace-pre-wrap sm:whitespace-pre break-words">
                 {curlFeedbackCode}
               </pre>
             </div>
