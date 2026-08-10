@@ -67,6 +67,51 @@ export async function runSmokeTest(): Promise<void> {
     }
     console.log('✓ Auto sessionId generation PASSED:', autoSessJson);
 
+    console.log('1c. Posting OTLP resourceSpans payload via POST /v1/traces...');
+    const otlpRes = await fetch(`${endpoint}/v1/traces`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resourceSpans: [
+          {
+            resource: {
+              attributes: [
+                { key: 'service.name', value: { stringValue: 'otlp-smoke-agent' } },
+                { key: 'app_key', value: { stringValue: 'app_live_8832109' } }
+              ]
+            },
+            scopeSpans: [
+              {
+                spans: [
+                  {
+                    traceId: '4bf92f3577b34da6a3ce929d0e0e4736',
+                    spanId: '00f067aa0ba902b7',
+                    name: 'otlp_query_vector_db',
+                    startTimeUnixNano: '1723249000000000000',
+                    endTimeUnixNano: '1723249000300000000',
+                    attributes: [
+                      { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+                      { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+                      { key: 'gen_ai.usage.input_tokens', value: { intValue: 350 } },
+                      { key: 'gen_ai.usage.output_tokens', value: { intValue: 80 } },
+                      { key: 'session_id', value: { stringValue: 'sess_otlp_smoke' } },
+                      { key: 'token_cost', value: { doubleValue: 0.0018 } }
+                    ],
+                    status: { code: 1 }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      })
+    });
+    const otlpJson = (await otlpRes.json()) as { status: string; ingestedCount: number };
+    if (otlpRes.status !== 202 || otlpJson.status !== 'queued' || otlpJson.ingestedCount !== 1) {
+      throw new Error(`OTLP trace ingestion failed! Response: ${JSON.stringify(otlpJson)}`);
+    }
+    console.log('✓ OTLP trace ingestion PASSED:', otlpJson);
+
     console.log('2. Requesting Sticky A/B Experiment Variant via POST /v1/experiments/variant...');
     const variantRes = await fetch(`${endpoint}/v1/experiments/variant`, {
       method: 'POST',

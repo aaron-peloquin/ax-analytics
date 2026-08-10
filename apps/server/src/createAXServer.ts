@@ -3,6 +3,7 @@ import cors from 'cors';
 import { initPostgres } from './db/initPostgres.js';
 import { initClickhouse } from './db/initClickhouse.js';
 import { handleTelemetryEvent } from './routes/handleTelemetryEvent.js';
+import { handleOtlpTraces } from './routes/handleOtlpTraces.js';
 import { handleExperimentVariant } from './routes/handleExperimentVariant.js';
 import { handleResetExperimentAssignments } from './routes/handleResetExperimentAssignments.js';
 import { handleFeedback } from './routes/handleFeedback.js';
@@ -23,6 +24,8 @@ export function createAXServer(config: AXServerConfig = {}): Express {
   const clickhouseStore = initClickhouse(process.env.CLICKHOUSE_HOST, process.env.CLICKHOUSE_DB);
 
   app.post('/v1/telemetry/event', handleTelemetryEvent(clickhouseStore));
+  app.post('/v1/traces', handleOtlpTraces(clickhouseStore));
+  app.post('/v1/v1/traces', handleOtlpTraces(clickhouseStore));
   app.post('/v1/experiments/variant', handleExperimentVariant(postgresStore));
   app.post('/v1/experiments/reset-assignments', handleResetExperimentAssignments(postgresStore));
   app.post('/v1/feedback', handleFeedback(postgresStore));
