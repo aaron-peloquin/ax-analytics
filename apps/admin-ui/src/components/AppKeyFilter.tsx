@@ -17,7 +17,7 @@ export function AppKeyFilter({ events, selectedAppKey, onChange }: AppKeyFilterP
     )
   );
 
-  const defaultAppKeys = ['adm_live_8832109', 'adm_dev_12345', 'quickshot_prod'];
+  const defaultAppKeys: string[] = [];
   const mergedKeys = Array.from(new Set([...availableAppKeys, ...defaultAppKeys]));
 
   return (
