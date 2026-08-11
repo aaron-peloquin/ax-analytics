@@ -19,6 +19,8 @@ export function handleResetExperimentAssignments(postgresStore: PostgresStore) {
       }
     }
 
+    postgresStore.save();
+
     res.status(200).json({
       status: 'success',
       experimentKey: key,

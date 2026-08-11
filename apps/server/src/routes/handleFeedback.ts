@@ -21,6 +21,8 @@ export function handleFeedback(postgresStore: PostgresStore) {
       createdAt: new Date().toISOString()
     });
 
+    postgresStore.save();
+
     res.status(201).json({ status: 'recorded' });
   };
 }

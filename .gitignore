@@ -4,3 +4,4 @@ dist
 .nx/workspace-data
 .env
 *.log
+data/

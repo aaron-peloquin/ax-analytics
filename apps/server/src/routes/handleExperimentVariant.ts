@@ -21,6 +21,7 @@ export function handleExperimentVariant(postgresStore: PostgresStore) {
       const splitPercentage = expRule ? expRule.splitPercentage : 50;
       variant = hashEntityVariant(entity, key, splitPercentage);
       postgresStore.abAssignments.set(assignmentKey, variant);
+      postgresStore.save();
     }
 
     res.status(200).json({

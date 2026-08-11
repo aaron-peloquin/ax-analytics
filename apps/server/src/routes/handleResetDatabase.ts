@@ -11,6 +11,10 @@ export function handleResetDatabase(clickhouseStore: ClickhouseStore, postgresSt
     postgresStore.feedbackRecords.length = 0;
     postgresStore.abAssignments.clear();
 
+    // Persist empty state to disk
+    clickhouseStore.save();
+    postgresStore.save();
+
     res.status(200).json({
       status: 'success',
       message: 'All database telemetry events, feedback records, and sticky assignments wiped clean.'

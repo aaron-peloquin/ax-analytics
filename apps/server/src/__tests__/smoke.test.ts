@@ -6,6 +6,8 @@ export async function runSmokeTest(): Promise<void> {
   const app = createAXServer();
   const port = 4499;
   const server = app.listen(port);
+  const testSessionIds: string[] = ['sess_smoke_test', 'sess_otlp_smoke'];
+  const testOtelTraceIds: string[] = ['4bf92f3577b34da6a3ce929d0e0e4736'];
 
   try {
     const endpoint = `http://localhost:${port}`;
@@ -65,6 +67,7 @@ export async function runSmokeTest(): Promise<void> {
     if (autoSessRes.status !== 202 || !autoSessJson.sessionId?.startsWith('ax_sess_')) {
       throw new Error(`Auto sessionId generation failed! Response: ${JSON.stringify(autoSessJson)}`);
     }
+    testSessionIds.push(autoSessJson.sessionId);
     console.log('✓ Auto sessionId generation PASSED:', autoSessJson);
 
     console.log('1c. Posting OTLP resourceSpans payload via POST /v1/traces...');
@@ -168,8 +171,35 @@ export async function runSmokeTest(): Promise<void> {
     }
     console.log(`✓ Analytics summary PASSED: ${summaryJson.totalEvents} total events, total cost $${summaryJson.totalCost}`);
 
+    console.log('6. Deleting OTEL logs made by the test suite at the end of the run...');
+    const deleteRes = await fetch(`${endpoint}/v1/admin/delete-otel-logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionIds: testSessionIds,
+        otelTraceIds: testOtelTraceIds
+      })
+    });
+    const deleteJson = (await deleteRes.json()) as { status: string; deletedCount: number };
+    if (deleteRes.status !== 200 || deleteJson.status !== 'success') {
+      throw new Error(`OTEL test log deletion failed! Response: ${JSON.stringify(deleteJson)}`);
+    }
+    console.log(`✓ OTEL test log deletion PASSED: Removed ${deleteJson.deletedCount} test OTEL log events.`);
+
     console.log('🎉 ALL HTTP API SMOKE TESTS PASSED CLEANLY!');
   } finally {
+    try {
+      await fetch(`http://localhost:${port}/v1/admin/delete-otel-logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionIds: testSessionIds,
+          otelTraceIds: testOtelTraceIds
+        })
+      });
+    } catch (_err) {
+      // Ignore error if server already closed
+    }
     server.close();
   }
 }

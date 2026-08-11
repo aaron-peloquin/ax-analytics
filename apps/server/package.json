@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx src/main.ts",
     "build": "tsc",
-    "test": "node dist/__tests__/experiments.test.js",
+    "test": "node dist/__tests__/experiments.test.js && node dist/__tests__/smoke.test.js",
     "smoke": "node dist/__tests__/smoke.test.js",
     "start": "node dist/main.js"
   },
