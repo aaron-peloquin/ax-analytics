@@ -11,7 +11,7 @@ export interface HeaderProps {
 export function Header({ activeTab, setActiveTab, totalEvents, onSendTestEvent }: HeaderProps): React.ReactElement {
   const tabs = [
     { id: 'overview', label: 'Traffic Overview', icon: Activity },
-    { id: 'transitions', label: 'Tool Sankey Trajectories', icon: GitMerge },
+    { id: 'transitions', label: 'Flows', icon: GitMerge },
     { id: 'cost', label: 'Cost & ROI', icon: DollarSign },
     { id: 'experiments', label: 'A/B Experiments', icon: Settings },
     { id: 'traces', label: 'Opik / AG-Grid Spans', icon: Table }

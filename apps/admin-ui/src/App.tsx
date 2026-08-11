@@ -9,6 +9,7 @@ import { TopNav } from './components/TopNav';
 import { TrafficOverview } from './components/TrafficOverview';
 import { ToolSunburstInspector } from './components/ToolSunburstInspector';
 import { TransitionNodeGraph } from './components/TransitionNodeGraph';
+import { computeUserPageTransitions } from './utils/computeUserPageTransitions';
 import { CostPerOutcomeChart } from './components/CostPerOutcomeChart';
 import { ExperimentManager } from './components/ExperimentManager';
 import { TraceAndFeedbackFeed } from './components/TraceAndFeedbackFeed';
@@ -81,6 +82,10 @@ export function App(): React.ReactElement {
     }
   }
 
+  const userPageTransitions = useMemo(() => {
+    return computeUserPageTransitions(filteredEvents);
+  }, [filteredEvents]);
+
   const feedback = data?.feedback || [];
 
   return (
@@ -129,7 +134,9 @@ export function App(): React.ReactElement {
                 />
               )}
               {activeTab === 'sunburst' && <ToolSunburstInspector events={filteredEvents} />}
-              {activeTab === 'transitions' && <TransitionNodeGraph transitions={transitions} />}
+              {activeTab === 'transitions' && (
+                <TransitionNodeGraph transitions={transitions} userPageTransitions={userPageTransitions} />
+              )}
               {activeTab === 'cost' && <CostPerOutcomeChart totalCost={totalCost} events={filteredEvents} />}
               {activeTab === 'experiments' && <ExperimentManager />}
               {activeTab === 'traces' && <TraceAndFeedbackFeed rawEvents={filteredEvents} feedbackRecords={feedback} />}

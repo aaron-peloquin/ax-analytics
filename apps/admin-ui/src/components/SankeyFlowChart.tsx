@@ -5,9 +5,15 @@ import { sanitizeSankeyLinks, SankeyLink } from '../utils/sanitizeSankeyLinks';
 
 export interface SankeyFlowChartProps {
   readonly transitions: Record<string, number>;
+  readonly emptyTitle?: string;
+  readonly emptySubtext?: string;
 }
 
-export function SankeyFlowChart({ transitions }: SankeyFlowChartProps): React.ReactElement {
+export function SankeyFlowChart({
+  transitions,
+  emptyTitle = 'No Trajectory Data Ingested Yet',
+  emptySubtext = 'Ingest telemetry events with source and target steps to map live flow diagrams.'
+}: SankeyFlowChartProps): React.ReactElement {
   const { links, sourceTotals, nodes, calculatedHeight } = useMemo(() => {
     const transitionEntries = Object.entries(transitions);
     const rawLinks: SankeyLink[] = [];
@@ -77,7 +83,7 @@ export function SankeyFlowChart({ transitions }: SankeyFlowChartProps): React.Re
             </div>
           `;
         }
-        return `<strong style="font-family: 'JetBrains Mono', monospace;">Tool Step: ${params.name}</strong>`;
+        return `<strong style="font-family: 'JetBrains Mono', monospace;">Step: ${params.name}</strong>`;
       }
     },
     series: [
@@ -131,23 +137,33 @@ export function SankeyFlowChart({ transitions }: SankeyFlowChartProps): React.Re
         levels: [
           {
             depth: 0,
-            itemStyle: { color: '#a855f7' },
-            lineStyle: { color: 'source', opacity: 0.5 }
+            itemStyle: { color: '#10b981' },
+            lineStyle: { color: 'gradient', opacity: 0.5 }
           },
           {
             depth: 1,
-            itemStyle: { color: '#ec4899' },
-            lineStyle: { color: 'source', opacity: 0.5 }
+            itemStyle: { color: '#06b6d4' },
+            lineStyle: { color: 'gradient', opacity: 0.5 }
           },
           {
             depth: 2,
-            itemStyle: { color: '#06b6d4' },
-            lineStyle: { color: 'source', opacity: 0.5 }
+            itemStyle: { color: '#a855f7' },
+            lineStyle: { color: 'gradient', opacity: 0.5 }
           },
           {
             depth: 3,
-            itemStyle: { color: '#10b981' },
-            lineStyle: { color: 'source', opacity: 0.5 }
+            itemStyle: { color: '#f97316' },
+            lineStyle: { color: 'gradient', opacity: 0.5 }
+          },
+          {
+            depth: 4,
+            itemStyle: { color: '#ef4444' },
+            lineStyle: { color: 'gradient', opacity: 0.5 }
+          },
+          {
+            depth: 5,
+            itemStyle: { color: '#dc2626' },
+            lineStyle: { color: 'gradient', opacity: 0.5 }
           }
         ]
       }
@@ -161,10 +177,8 @@ export function SankeyFlowChart({ transitions }: SankeyFlowChartProps): React.Re
           <GitMerge className="w-8 h-8" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-white font-heading">No Agent Tool Trajectory Data Ingested Yet</h4>
-          <p className="text-xs text-purple-200 font-medium max-w-md mt-1">
-            Ingest agent tool call telemetry with <code className="text-fuchsia-300 font-mono font-bold">invokedToolName</code> and <code className="text-fuchsia-300 font-mono font-bold">previousToolName</code> via cURL to map live tool request flows.
-          </p>
+          <h4 className="text-sm font-bold text-white font-heading">{emptyTitle}</h4>
+          <p className="text-xs text-purple-200 font-medium max-w-md mt-1">{emptySubtext}</p>
         </div>
       </div>
     );

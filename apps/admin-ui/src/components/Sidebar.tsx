@@ -14,7 +14,7 @@ export function Sidebar({ activeTab, setActiveTab, isCollapsed, onToggleCollapse
   const navItems = [
     { id: 'overview', label: 'Traffic Overview', icon: Activity, desc: 'Real-time telemetry' },
     { id: 'sunburst', label: 'Tool Inspector', icon: PieChart, desc: 'Param hub & value table' },
-    { id: 'transitions', label: 'Tool Request Flows', icon: GitMerge, desc: 'Agent & page flows' },
+    { id: 'transitions', label: 'Flows', icon: GitMerge, desc: 'Agent & user flows' },
     { id: 'cost', label: 'Resolved Agent Runs', icon: DollarSign, desc: 'Execution & outcomes' },
     { id: 'experiments', label: 'A/B Experiments', icon: Settings, desc: 'Sticky variant rules' },
     { id: 'traces', label: 'Telemetry Spans Grid', icon: Table, desc: 'Filterable trace data' },
