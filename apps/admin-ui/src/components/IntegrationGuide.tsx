@@ -26,18 +26,36 @@ export function IntegrationGuide(): React.ReactElement {
     }
   }'`;
 
-  const curlPageViewCode = `curl -X POST http://localhost:4400/v1/telemetry/event \\
+  const curlPageViewCode = `curl -X POST http://localhost:4400/v1/telemetry/otlp/v1/traces \\
   -H "Content-Type: application/json" \\
   -d '{
-    "appKey": "app_live_8832109",
-    "sessionId": "web_sess_99201",
-    "entityId": "user_4821",
-    "entityType": "human",
-    "eventType": "page_view",
-    "params": {
-      "pageUrl": "/products/headphones",
-      "pageTitle": "Wireless Headphones - Shop",
-      "referrer": "https://google.com"
+    "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "spanId": "00f067aa0ba902b7",
+    "parentSpanId": "5e1074e531853683",
+    "name": "documentLoad",
+    "startTime": [1700000000, 100000000],
+    "endTime": [1700000000, 850000000],
+    "attributes": {
+      "url.full": "https://example.com/products/headphones",
+      "url.scheme": "https",
+      "url.path": "/products/headphones",
+      "user_agent.original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/122.0.0.0 Safari/537.36",
+      "document.title": "Wireless Headphones - Shop",
+      "document.referrer": "https://google.com",
+      "document.visibilityState": "visible",
+      "app.key": "app_live_8832109",
+      "app.event_type": "page_view",
+      "session.id": "web_sess_99201",
+      "user.id": "user_4821",
+      "user.type": "human"
+    },
+    "resource": {
+      "attributes": {
+        "service.name": "web-frontend",
+        "browser.platform": "macOS",
+        "browser.mobile": false,
+        "browser.brands": ["Google Chrome 122", "Chromium 122"]
+      }
     }
   }'`;
 

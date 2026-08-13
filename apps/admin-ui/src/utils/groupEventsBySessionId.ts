@@ -57,7 +57,9 @@ export function groupEventsBySessionId(
         hasErrors = true;
       }
 
-      if (e.invokedToolName) {
+      if (e.urlPath) {
+        trajectoryList.push(e.urlPath);
+      } else if (e.invokedToolName) {
         trajectoryList.push(e.invokedToolName);
       } else if (e.eventType === 'llm_inference') {
         const label = e.model ? `LLM (${e.model})` : e.provider ? `LLM (${e.provider})` : 'LLM Inference';

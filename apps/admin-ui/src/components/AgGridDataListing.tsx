@@ -11,6 +11,8 @@ import { groupEventsBySessionId, SessionGroupSummary } from '../utils/groupEvent
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
+import { SlidersHorizontal, Check } from 'lucide-react';
+
 export interface AgGridDataListingProps {
   readonly events: readonly TelemetryEvent[];
 }
@@ -22,10 +24,55 @@ const DEFAULT_FILTERS: SpanFilters = {
   eventType: 'ALL'
 };
 
+const ALL_RAW_COLUMNS = [
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'appKey', label: 'App Scope' },
+  { key: 'sessionId', label: 'Session ID' },
+  { key: 'urlPath', label: 'URL Path' },
+  { key: 'documentTitle', label: 'Document Title' },
+  { key: 'deviceCategory', label: 'Device (Desktop/Mobile)' },
+  { key: 'isEntrypointPage', label: 'Entrypoint Page' },
+  { key: 'documentVisibilityState', label: 'Visibility State' },
+  { key: 'multiagentIdentity', label: 'Orchestrator ID' },
+  { key: 'entityId', label: 'Entity / User ID' },
+  { key: 'entityType', label: 'Type' },
+  { key: 'eventType', label: 'Event Type' },
+  { key: 'invokedToolName', label: 'Invoked Tool / Page' },
+  { key: 'previousToolName', label: 'Previous Tool / Path' },
+  { key: 'provider', label: 'LLM Vendor' },
+  { key: 'model', label: 'LLM Model' },
+  { key: 'inputTokens', label: 'Prompt Tokens' },
+  { key: 'outputTokens', label: 'Completion Tokens' },
+  { key: 'statusCode', label: 'Status' },
+  { key: 'executionTimeMs', label: 'Latency (ms)' },
+  { key: 'tokenCost', label: 'Token Cost ($)' },
+  { key: 'otelTraceId', label: 'OTel Trace ID' }
+];
+
 export function AgGridDataListing({ events }: AgGridDataListingProps): React.ReactElement {
   const [filters, setFilters] = useState<SpanFilters>(DEFAULT_FILTERS);
   const [groupingMode, setGroupingMode] = useState<TraceGroupingMode>('spans');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [showColumnPicker, setShowColumnPicker] = useState<boolean>(false);
+  const [visibleColKeys, setVisibleColKeys] = useState<Set<string>>(
+    new Set([
+      'timestamp', 'appKey', 'sessionId', 'urlPath', 'documentTitle', 'deviceCategory', 
+      'isEntrypointPage', 'entityId', 'entityType', 'eventType', 'invokedToolName', 
+      'statusCode', 'executionTimeMs', 'otelTraceId'
+    ])
+  );
+
+  const toggleColumn = (key: string) => {
+    setVisibleColKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size > 1) next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   const filteredEvents = useMemo(() => {
     const q = filters.search.toLowerCase().trim();
@@ -36,7 +83,8 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
       if (q) {
         const haystack = [
           evt.sessionId, evt.entityId, evt.multiagentIdentity, evt.invokedToolName,
-          evt.previousToolName, evt.otelTraceId, evt.otelSpanId, evt.eventType
+          evt.previousToolName, evt.otelTraceId, evt.otelSpanId, evt.eventType,
+          evt.urlPath, evt.documentTitle, evt.deviceCategory, evt.userAgent
         ].join(' ').toLowerCase();
         if (!haystack.includes(q)) return false;
       }
@@ -48,47 +96,85 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
   const agentGroups = useMemo(() => groupEventsByAgentIdentity(filteredEvents), [filteredEvents]);
   const sessionGroups = useMemo(() => groupEventsBySessionId(filteredEvents), [filteredEvents]);
 
-  const rawSpanColumnDefs: ColDef<TelemetryEvent>[] = [
-    {
-      field: 'timestamp',
-      headerName: 'Timestamp',
-      sortable: true,
-      filter: true,
-      width: 150,
-      valueFormatter: params => params.value ? new Date(params.value).toLocaleTimeString() : 'Now'
-    },
-    { field: 'appKey', headerName: 'App Scope', sortable: true, filter: true, width: 140 },
-    { field: 'sessionId', headerName: 'Session ID', sortable: true, filter: true, width: 150 },
-    { field: 'multiagentIdentity', headerName: 'Orchestrator ID', sortable: true, filter: true, width: 200 },
-    { field: 'entityId', headerName: 'Entity / Agent ID', sortable: true, filter: true, width: 200 },
-    { field: 'entityType', headerName: 'Type', sortable: true, filter: true, width: 90 },
-    { field: 'eventType', headerName: 'Event Type', sortable: true, filter: true, width: 120 },
-    { field: 'invokedToolName', headerName: 'Invoked Tool', sortable: true, filter: true, width: 180 },
-    { field: 'previousToolName', headerName: 'Previous Tool', sortable: true, filter: true, width: 150 },
-    { field: 'provider', headerName: 'LLM Vendor', sortable: true, filter: true, width: 120 },
-    { field: 'model', headerName: 'LLM Model', sortable: true, filter: true, width: 150 },
-    { field: 'inputTokens', headerName: 'Prompt Tokens', sortable: true, filter: 'agNumberColumnFilter', width: 130 },
-    { field: 'outputTokens', headerName: 'Completion Tokens', sortable: true, filter: 'agNumberColumnFilter', width: 145 },
-    {
-      field: 'statusCode',
-      headerName: 'Status',
-      sortable: true,
-      filter: true,
-      width: 130,
-      cellRenderer: (params: { value?: string }) => {
-        const val = params.value || 'SUCCESS';
-        const isErr = val !== 'SUCCESS';
-        return (
-          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${isErr ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}`}>
-            {val}
-          </span>
-        );
-      }
-    },
-    { field: 'executionTimeMs', headerName: 'Latency (ms)', sortable: true, filter: 'agNumberColumnFilter', width: 120 },
-    { field: 'tokenCost', headerName: 'Token Cost ($)', sortable: true, filter: 'agNumberColumnFilter', width: 130, valueFormatter: p => `$${(p.value || 0).toFixed(4)}` },
-    { field: 'otelTraceId', headerName: 'OTel Trace ID', sortable: true, filter: true, width: 220 }
-  ];
+  const rawSpanColumnDefs: ColDef<TelemetryEvent>[] = useMemo(() => {
+    const allDefs: ColDef<TelemetryEvent>[] = [
+      {
+        field: 'timestamp',
+        headerName: 'Timestamp',
+        sortable: true,
+        filter: true,
+        width: 130,
+        valueFormatter: params => params.value ? new Date(params.value).toLocaleTimeString() : 'Now'
+      },
+      { field: 'appKey', headerName: 'App Scope', sortable: true, filter: true, width: 140 },
+      { field: 'sessionId', headerName: 'Session ID', sortable: true, filter: true, width: 150 },
+      { field: 'urlPath', headerName: 'URL Path', sortable: true, filter: true, width: 180, valueFormatter: p => p.value || p.data?.invokedToolName || '-' },
+      { field: 'documentTitle', headerName: 'Document Title', sortable: true, filter: true, width: 180, valueFormatter: p => p.value || '-' },
+      {
+        field: 'deviceCategory',
+        headerName: 'Device',
+        sortable: true,
+        filter: true,
+        width: 110,
+        cellRenderer: (params: { value?: string, data?: TelemetryEvent }) => {
+          const cat = params.value || (params.data?.browserMobile ? 'mobile' : 'desktop');
+          return (
+            <span className={`px-2 py-0.5 rounded text-xs font-medium uppercase ${cat === 'mobile' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'}`}>
+              {cat}
+            </span>
+          );
+        }
+      },
+      {
+        field: 'isEntrypointPage',
+        headerName: 'Entrypoint',
+        sortable: true,
+        filter: true,
+        width: 120,
+        cellRenderer: (params: { value?: boolean }) => {
+          return params.value ? (
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              Initial Load
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded text-xs text-purple-400">SPA Nav</span>
+          );
+        }
+      },
+      { field: 'documentVisibilityState', headerName: 'Visibility', sortable: true, filter: true, width: 110, valueFormatter: p => p.value || 'visible' },
+      { field: 'multiagentIdentity', headerName: 'Orchestrator ID', sortable: true, filter: true, width: 180 },
+      { field: 'entityId', headerName: 'Entity / User ID', sortable: true, filter: true, width: 180 },
+      { field: 'entityType', headerName: 'Type', sortable: true, filter: true, width: 90 },
+      { field: 'eventType', headerName: 'Event Type', sortable: true, filter: true, width: 120 },
+      { field: 'invokedToolName', headerName: 'Invoked Tool / Page', sortable: true, filter: true, width: 180 },
+      { field: 'previousToolName', headerName: 'Previous Tool / Path', sortable: true, filter: true, width: 160 },
+      { field: 'provider', headerName: 'LLM Vendor', sortable: true, filter: true, width: 120 },
+      { field: 'model', headerName: 'LLM Model', sortable: true, filter: true, width: 150 },
+      { field: 'inputTokens', headerName: 'Prompt Tokens', sortable: true, filter: 'agNumberColumnFilter', width: 130 },
+      { field: 'outputTokens', headerName: 'Completion Tokens', sortable: true, filter: 'agNumberColumnFilter', width: 145 },
+      {
+        field: 'statusCode',
+        headerName: 'Status',
+        sortable: true,
+        filter: true,
+        width: 120,
+        cellRenderer: (params: { value?: string }) => {
+          const val = params.value || 'SUCCESS';
+          const isErr = val !== 'SUCCESS';
+          return (
+            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${isErr ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}`}>
+              {val}
+            </span>
+          );
+        }
+      },
+      { field: 'executionTimeMs', headerName: 'Latency (ms)', sortable: true, filter: 'agNumberColumnFilter', width: 120 },
+      { field: 'tokenCost', headerName: 'Token Cost ($)', sortable: true, filter: 'agNumberColumnFilter', width: 130, valueFormatter: p => `$${(p.value || 0).toFixed(4)}` },
+      { field: 'otelTraceId', headerName: 'OTel Trace ID', sortable: true, filter: true, width: 220 }
+    ];
+
+    return allDefs.filter(col => visibleColKeys.has(col.field as string));
+  }, [visibleColKeys]);
 
   const multiagentColumnDefs: ColDef<MultiagentGroupSummary>[] = [
     { field: 'multiagentIdentity', headerName: 'Orchestrator System ID', sortable: true, filter: true, width: 220 },
@@ -150,7 +236,7 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
     { field: 'multiagentIdentity', headerName: 'Orchestrator System', sortable: true, filter: true, width: 190, valueFormatter: p => p.value || 'unassigned' },
     { field: 'spanCount', headerName: 'Turns / Spans', sortable: true, filter: 'agNumberColumnFilter', width: 130 },
     { field: 'agentCount', headerName: 'Agents Count', sortable: true, filter: 'agNumberColumnFilter', width: 130 },
-    { field: 'trajectorySummary', headerName: 'Execution Tool Chain', sortable: false, filter: true, width: 320, valueFormatter: p => (p.value || []).join(' → ') || 'No tool calls' },
+    { field: 'trajectorySummary', headerName: 'Event Action Sequence', sortable: false, filter: true, width: 340, valueFormatter: p => (p.value || []).join(' → ') || 'No events recorded' },
     { field: 'totalTokens', headerName: 'LLM Tokens', sortable: true, filter: 'agNumberColumnFilter', width: 135, valueFormatter: p => p.value?.toLocaleString() || '0' },
     { field: 'totalCost', headerName: 'Total Cost ($)', sortable: true, filter: 'agNumberColumnFilter', width: 135, valueFormatter: p => `$${(p.value || 0).toFixed(4)}` },
     { field: 'totalDurationMs', headerName: 'Duration (ms)', sortable: true, filter: 'agNumberColumnFilter', width: 140, valueFormatter: p => `${Math.round(p.value || 0)} ms` },
@@ -173,7 +259,7 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
 
   return (
     <div className="space-y-4">
-      {/* Grouping Toggle */}
+      {/* Grouping Toggle & Column Picker */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TraceGroupingToggle
           activeMode={groupingMode}
@@ -185,6 +271,51 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
             session: sessionGroups.length
           }}
         />
+
+        {groupingMode === 'spans' && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowColumnPicker(!showColumnPicker)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 border border-purple-700/50 text-xs font-medium transition-all shadow-sm"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-fuchsia-400" />
+              <span>Column Picker ({visibleColKeys.size}/{ALL_RAW_COLUMNS.length})</span>
+            </button>
+
+            {showColumnPicker && (
+              <div className="absolute right-0 mt-2 w-64 p-3 bg-[#130a24] border border-purple-700/60 rounded-xl shadow-2xl z-50 text-xs space-y-2 backdrop-blur-xl">
+                <div className="flex items-center justify-between border-b border-purple-900/60 pb-2">
+                  <span className="font-semibold text-fuchsia-300">Visible Columns</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowColumnPicker(false)}
+                    className="text-purple-400 hover:text-white text-xs"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+                  {ALL_RAW_COLUMNS.map(col => {
+                    const isChecked = visibleColKeys.has(col.key);
+                    return (
+                      <label
+                        key={col.key}
+                        onClick={() => toggleColumn(col.key)}
+                        className="flex items-center justify-between px-2 py-1 rounded hover:bg-purple-900/40 cursor-pointer text-purple-200 select-none"
+                      >
+                        <span>{col.label}</span>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-purple-600 border-purple-400 text-white' : 'border-purple-800 bg-purple-950/50'}`}>
+                          {isChecked && <Check className="w-3 h-3 text-white stroke-[3]" />}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filters Bar */}

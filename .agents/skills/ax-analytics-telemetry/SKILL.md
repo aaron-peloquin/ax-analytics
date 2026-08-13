@@ -161,6 +161,46 @@ curl -X POST http://localhost:4400/v1/telemetry/event \
   }'
 ```
 
+### 3. Ingest Human Web Pageview OTLP Trace (`POST /v1/telemetry/otlp/v1/traces`)
+
+> [!NOTE]
+> `user.type: "human"` denotes real human visitors navigating the web frontend. Human users generate `documentLoad` pageview events (URL path, title, referrer, visibility state, device desktop/mobile). This is distinct from AI agents (`user.type: "agent"`), which execute backend tools/prompts.
+
+```bash
+curl -X POST http://localhost:4400/v1/telemetry/otlp/v1/traces \
+  -H "Content-Type: application/json" \
+  -d '{
+    "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "spanId": "00f067aa0ba902b7",
+    "parentSpanId": "5e1074e531853683",
+    "name": "documentLoad",
+    "startTime": [1700000000, 100000000],
+    "endTime": [1700000000, 850000000],
+    "attributes": {
+      "url.full": "https://example.com/products/headphones",
+      "url.scheme": "https",
+      "url.path": "/products/headphones",
+      "user_agent.original": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36",
+      "document.title": "Wireless Headphones - Shop",
+      "document.referrer": "https://google.com",
+      "document.visibilityState": "visible",
+      "app.key": "app_live_8832109",
+      "app.event_type": "page_view",
+      "session.id": "web_sess_99201",
+      "user.id": "user_4821",
+      "user.type": "human"
+    },
+    "resource": {
+      "attributes": {
+        "service.name": "web-frontend",
+        "browser.platform": "macOS",
+        "browser.mobile": false,
+        "browser.brands": ["Google Chrome 122", "Chromium 122"]
+      }
+    }
+  }'
+```
+
 ### 3. Resolve Sticky A/B Experiment (`POST /v1/experiments/variant`)
 
 ```bash

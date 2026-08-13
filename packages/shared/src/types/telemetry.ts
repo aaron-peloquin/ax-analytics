@@ -30,7 +30,22 @@ export interface TelemetryEvent {
   readonly model?: string;
   readonly otelTraceId?: string;
   readonly otelSpanId?: string;
+  readonly parentSpanId?: string;
   readonly assignedVariant?: string;
+  readonly urlFull?: string;
+  readonly urlPath?: string;
+  readonly urlScheme?: string;
+  readonly documentTitle?: string;
+  readonly documentReferrer?: string;
+  readonly documentVisibilityState?: string;
+  readonly userAgent?: string;
+  readonly browserPlatform?: string;
+  readonly browserMobile?: boolean;
+  readonly deviceCategory?: 'mobile' | 'desktop';
+  readonly browserBrands?: readonly string[];
+  readonly userId?: string;
+  readonly isEntrypointPage?: boolean;
+  readonly previousUrlPath?: string;
 }
 
 export interface AgentToolCallPayload {

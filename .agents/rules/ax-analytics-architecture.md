@@ -25,3 +25,8 @@ Follow these core technical patterns when maintaining or extending `ax-analytics
 - Variant assignment is computed deterministically via `hash(entity_id + experiment_id) % 100`.
 - Compare score against `split_percentage`: if `< split_percentage` assign Variant `"B"`, else `"A"`.
 - Return both camelCase (`assignedVariant`) and snake_case (`assigned_variant`) properties in JSON responses.
+
+## 5. Telemetry Entity Types & User Pageviews
+- **Human Site Visitors (`entityType: 'human'` / `user.type: 'human'`):** Represents real human users navigating the web application frontend (`documentLoad` pageview events, route changes, timing, referrer, device desktop vs mobile). Human telemetry is generated exclusively by website visitors, NOT web-crawling AI agents.
+- **GenAI Agents (`entityType: 'agent'` / `user.type: 'agent'`):** Represents autonomous AI agents executing backend tools/prompts tracked via OpenTelemetry traces (`tool_call`, `llm_inference`).
+
