@@ -171,7 +171,17 @@ export async function runSmokeTest(): Promise<void> {
     }
     console.log(`✓ Analytics summary PASSED: ${summaryJson.totalEvents} total events, total cost $${summaryJson.totalCost}`);
 
-    console.log('6. Deleting OTEL logs made by the test suite at the end of the run...');
+    console.log('5b. Testing MCP Reverse Proxy Endpoint via POST /v1/mcp/proxy...');
+    const proxyValidationRes = await fetch(`${endpoint}/v1/mcp/proxy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const proxyValidationJson = (await proxyValidationRes.json()) as { jsonrpc: string; error?: { code: number } };
+    if (proxyValidationRes.status !== 400 || proxyValidationJson.error?.code !== -32602) {
+      throw new Error(`MCP proxy validation failed! Response: ${JSON.stringify(proxyValidationJson)}`);
+    }
+    console.log('✓ MCP reverse proxy error validation PASSED:', proxyValidationJson);
     const deleteRes = await fetch(`${endpoint}/v1/admin/delete-otel-logs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

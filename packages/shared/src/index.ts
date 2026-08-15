@@ -2,6 +2,10 @@ export * from './types/telemetry.js';
 export * from './types/experiments.js';
 export * from './types/feedback.js';
 export * from './types/embeddings.js';
+export * from './types/mcpTypes.js';
 export * from './validators/validateTelemetryPayload.js';
 export * from './utils/otlpToTelemetryEvents.js';
-
+export * from './utils/extractUrlParams.js';
+export * from './utils/resolveTargetUrl.js';
+export * from './utils/sanitizeHeaders.js';
+export * from './utils/mcpProxyClient.js';

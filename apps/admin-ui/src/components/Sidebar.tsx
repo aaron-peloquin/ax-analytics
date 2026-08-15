@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, GitMerge, Table, DollarSign, Settings, PieChart, Code, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Activity, GitMerge, Table, DollarSign, Settings, PieChart, Code, Server, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 export interface SidebarProps {
   readonly activeTab: string;
@@ -13,6 +13,7 @@ export interface SidebarProps {
 export function Sidebar({ activeTab, setActiveTab, isCollapsed, onToggleCollapse, isMobileOpen = false, onCloseMobile }: SidebarProps): React.ReactElement {
   const navItems = [
     { id: 'overview', label: 'Traffic Overview', icon: Activity, desc: 'Real-time telemetry' },
+    { id: 'mcp', label: 'MCP Test Client', icon: Server, desc: 'Proxy test & tool runner' },
     { id: 'sunburst', label: 'Tool Inspector', icon: PieChart, desc: 'Param hub & value table' },
     { id: 'transitions', label: 'Flows', icon: GitMerge, desc: 'Agent & user flows' },
     { id: 'cost', label: 'Resolved Agent Runs', icon: DollarSign, desc: 'Execution & outcomes' },

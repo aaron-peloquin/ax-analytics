@@ -14,12 +14,13 @@ import { CostPerOutcomeChart } from './components/CostPerOutcomeChart';
 import { ExperimentManager } from './components/ExperimentManager';
 import { TraceAndFeedbackFeed } from './components/TraceAndFeedbackFeed';
 import { IntegrationGuide } from './components/IntegrationGuide';
+import { McpClientAdmin } from './components/McpClientAdmin';
 
 export function App(): React.ReactElement {
   const getInitialTab = (): string => {
     if (typeof window !== 'undefined' && window.location.hash) {
       const hashTab = window.location.hash.replace(/^#\/?/, '');
-      if (['overview', 'sunburst', 'transitions', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
+      if (['overview', 'mcp', 'sunburst', 'transitions', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
         return hashTab;
       }
     }
@@ -45,7 +46,7 @@ export function App(): React.ReactElement {
   useEffect(() => {
     const handleHashChange = () => {
       const hashTab = window.location.hash.replace(/^#\/?/, '');
-      if (['overview', 'sunburst', 'transitions', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
+      if (['overview', 'mcp', 'sunburst', 'transitions', 'cost', 'experiments', 'traces', 'integrate'].includes(hashTab)) {
         setActiveTab(hashTab);
       }
     };
@@ -133,6 +134,7 @@ export function App(): React.ReactElement {
                   timeGrouping={timeGrouping}
                 />
               )}
+              {activeTab === 'mcp' && <McpClientAdmin />}
               {activeTab === 'sunburst' && <ToolSunburstInspector events={filteredEvents} />}
               {activeTab === 'transitions' && (
                 <TransitionNodeGraph transitions={transitions} userPageTransitions={userPageTransitions} />

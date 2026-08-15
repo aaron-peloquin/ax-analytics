@@ -10,6 +10,7 @@ import { handleFeedback } from './routes/handleFeedback.js';
 import { handleAnalyticsSummary } from './routes/handleAnalyticsSummary.js';
 import { handleResetDatabase } from './routes/handleResetDatabase.js';
 import { handleDeleteOtelLogs } from './routes/handleDeleteOtelLogs.js';
+import { handleMcpProxy } from './routes/handleMcpProxy.js';
 
 export interface AXServerConfig {
   readonly configPath?: string;
@@ -30,6 +31,8 @@ export function createAXServer(config: AXServerConfig = {}): Express {
   app.post('/v1/experiments/variant', handleExperimentVariant(postgresStore));
   app.post('/v1/experiments/reset-assignments', handleResetExperimentAssignments(postgresStore));
   app.post('/v1/feedback', handleFeedback(postgresStore));
+  app.post('/v1/mcp/proxy', handleMcpProxy());
+  app.post('/api/mcp-proxy', handleMcpProxy());
   app.post('/v1/admin/reset-db', handleResetDatabase(clickhouseStore, postgresStore));
   app.post('/v1/admin/delete-otel-logs', handleDeleteOtelLogs(clickhouseStore));
   app.delete('/v1/telemetry/otel-logs', handleDeleteOtelLogs(clickhouseStore));
