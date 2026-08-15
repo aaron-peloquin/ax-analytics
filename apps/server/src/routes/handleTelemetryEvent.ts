@@ -25,7 +25,7 @@ export function handleTelemetryEvent(clickhouseStore: ClickhouseStore) {
       sessionId,
       entityId,
       appKey,
-      entityType: (raw.entityType as 'human' | 'agent') || 'agent',
+      entityType: (raw.entityType as 'human' | 'agent' | undefined) || undefined,
       timestamp: (raw.timestamp as string) || new Date().toISOString()
     };
 

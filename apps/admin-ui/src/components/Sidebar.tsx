@@ -19,7 +19,7 @@ export function Sidebar({ activeTab, setActiveTab, isCollapsed, onToggleCollapse
     { id: 'cost', label: 'Resolved Agent Runs', icon: DollarSign, desc: 'Execution & outcomes' },
     { id: 'experiments', label: 'A/B Experiments', icon: Settings, desc: 'Sticky variant rules' },
     { id: 'traces', label: 'Telemetry Spans Grid', icon: Table, desc: 'Filterable trace data' },
-    { id: 'integrate', label: 'cURL API & Types', icon: Code, desc: 'HTTP API & _v1 contracts' }
+    { id: 'integrate', label: 'Integration', icon: Code, desc: 'HTTP API & _v1 contracts' }
   ];
 
   const handleNavClick = (id: string) => {

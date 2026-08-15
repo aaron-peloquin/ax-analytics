@@ -133,31 +133,67 @@ All commands run from the **monorepo root**:
 
 ## Sending Your First Telemetry Event
 
-Once the server is running, ingest a tool call event via cURL:
+Once the server is running, ingest an agent tool call event via cURL:
 
 ```bash
 curl -X POST http://localhost:4400/v1/telemetry/event \
   -H "Content-Type: application/json" \
   -d '{
-    "appKey": "your_app_key",
-    "sessionId": "session-abc-123",
-    "entityId": "my-agent-v1",
+    "appKey": "customer_support_prod",
+    "sessionId": "sess_usr_98124_chat",
+    "multiagentIdentity": "customer-triage-system",
+    "entityId": "retrieval-agent",
     "entityType": "agent",
     "eventType": "tool_call",
-    "invokedToolName": "search_web",
-    "previousToolName": "plan_task",
-    "params": { "query": "best restaurants near me" },
-    "results": { "count": 12 },
+    "invokedToolName": "search_knowledge_base",
+    "previousToolName": "init_session",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "inputTokens": 850,
+    "outputTokens": 120,
+    "params": { "query": "order refund status", "topK": 3 },
+    "results": { "status": "active", "docsFound": 3 },
     "statusCode": "SUCCESS",
-    "tokenCost": 0.0042,
-    "executionTimeMs": 834
+    "tokenCost": 0.0018,
+    "executionTimeMs": 240,
+    "otelTraceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "otelSpanId": "00f067aa0ba902b7"
+  }'
+```
+
+Or ingest a direct GenAI LLM inference prompt/response pair:
+
+```bash
+curl -X POST http://localhost:4400/v1/telemetry/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appKey": "customer_support_prod",
+    "sessionId": "sess_usr_98124_chat",
+    "multiagentIdentity": "customer-triage-system",
+    "entityId": "summarization-worker",
+    "entityType": "agent",
+    "eventType": "llm_inference",
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet",
+    "inputTokens": 1200,
+    "outputTokens": 350,
+    "params": {
+      "prompt": "Summarize customer refund conversation.",
+      "temperature": 0.3
+    },
+    "results": {
+      "response": "Customer requested a refund due to delayed shipment. Resolution issued under policy #402."
+    },
+    "statusCode": "SUCCESS",
+    "tokenCost": 0.0032,
+    "executionTimeMs": 450
   }'
 ```
 
 **Response:**
 
 ```json
-{ "status": "queued" }
+{ "status": "queued", "sessionId": "sess_usr_98124_chat" }
 ```
 
 Now open the dashboard at **<http://localhost:3300>** to see your data appear.

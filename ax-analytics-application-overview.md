@@ -276,50 +276,88 @@ Records session feedback (`+1` / `-1`).
 
 Telemetry ingestion, A/B variant resolution, and session feedback are performed via pure HTTP endpoints and TypeScript contracts from `@ax-analytics/shared` (or guided via `.agents/skills/ax-analytics-telemetry/SKILL.md`):
 
-### 1. Ingest Telemetry Event (Tool Call / Pageview)
+### 1. Ingest Agent Tool Call Telemetry
 
 ```bash
 curl -X POST http://localhost:4400/v1/telemetry/event \
   -H "Content-Type: application/json" \
   -d '{
-    "appKey": "app_live_8832109",
-    "sessionId": "sess_987654321",
-    "entityId": "inventory-agent-02JULY2026-tools",
+    "appKey": "customer_support_prod",
+    "sessionId": "sess_usr_98124_chat",
+    "multiagentIdentity": "customer-triage-system",
+    "entityId": "retrieval-agent",
     "entityType": "agent",
     "eventType": "tool_call",
-    "invokedToolName": "edit_product",
-    "previousToolName": "search_products",
-    "params": { "product_id": "PROD-1024" },
-    "results": { "status": "updated" },
+    "invokedToolName": "search_knowledge_base",
+    "previousToolName": "init_session",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "inputTokens": 850,
+    "outputTokens": 120,
+    "params": { "query": "order refund status", "topK": 3 },
+    "results": { "status": "active", "docsFound": 3 },
     "statusCode": "SUCCESS",
-    "tokenCost": 0.0042,
-    "executionTimeMs": 340
+    "tokenCost": 0.0018,
+    "executionTimeMs": 240,
+    "otelTraceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "otelSpanId": "00f067aa0ba902b7"
   }'
 ```
 
-### 2. Resolve Sticky A/B Experiment Variant
+### 2. Ingest Non-Tool GenAI LLM Inference (Prompt & Response)
+
+```bash
+curl -X POST http://localhost:4400/v1/telemetry/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appKey": "customer_support_prod",
+    "sessionId": "sess_usr_98124_chat",
+    "multiagentIdentity": "customer-triage-system",
+    "entityId": "summarization-worker",
+    "entityType": "agent",
+    "eventType": "llm_inference",
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet",
+    "inputTokens": 1200,
+    "outputTokens": 350,
+    "params": {
+      "prompt": "Summarize customer refund conversation.",
+      "temperature": 0.3
+    },
+    "results": {
+      "response": "Customer requested a refund due to delayed shipment. Resolution issued under policy #402."
+    },
+    "statusCode": "SUCCESS",
+    "tokenCost": 0.0032,
+    "executionTimeMs": 450,
+    "otelTraceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "otelSpanId": "00f067aa0ba902b7"
+  }'
+```
+
+### 3. Resolve Sticky A/B Experiment Variant
 
 ```bash
 curl -X POST http://localhost:4400/v1/experiments/variant \
   -H "Content-Type: application/json" \
   -d '{
-    "appKey": "app_live_8832109",
-    "experimentKey": "new_inventory_schema_v2",
-    "entityId": "inventory-agent-02JULY2026-tools"
+    "appKey": "customer_support_prod",
+    "experimentKey": "proactive_rag_retrieval_v2",
+    "entityId": "retrieval-agent"
   }'
 ```
 
-### 3. Submit Session Feedback
+### 4. Submit Session Feedback
 
 ```bash
-curl -X POST http://localhost:4400/v1/session/feedback \
+curl -X POST http://localhost:4400/v1/feedback \
   -H "Content-Type: application/json" \
   -d '{
-    "appKey": "app_live_8832109",
-    "sessionId": "sess_987654321",
-    "entityId": "user_882",
+    "appKey": "customer_support_prod",
+    "sessionId": "sess_usr_98124_chat",
+    "entityId": "retrieval-agent",
     "vote": 1,
-    "comment": "Great experience!"
+    "comment": "Resolved user query accurately with RAG context."
   }'
 ```
 
@@ -437,10 +475,24 @@ pnpm dev
 curl -X POST http://localhost:4400/v1/telemetry/event \
   -H "Content-Type: application/json" \
   -d '{
-    "appKey": "app_live_8832109",
-    "sessionId": "sess_123",
-    "entityId": "agent-v1",
+    "appKey": "customer_support_prod",
+    "sessionId": "sess_usr_98124_chat",
+    "multiagentIdentity": "customer-triage-system",
+    "entityId": "retrieval-agent",
+    "entityType": "agent",
     "eventType": "tool_call",
-    "invokedToolName": "search_products"
+    "invokedToolName": "search_knowledge_base",
+    "previousToolName": "init_session",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "inputTokens": 850,
+    "outputTokens": 120,
+    "params": { "query": "order refund status", "topK": 3 },
+    "results": { "status": "active", "docsFound": 3 },
+    "statusCode": "SUCCESS",
+    "tokenCost": 0.0018,
+    "executionTimeMs": 240,
+    "otelTraceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "otelSpanId": "00f067aa0ba902b7"
   }'
 ```

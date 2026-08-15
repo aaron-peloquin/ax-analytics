@@ -18,7 +18,9 @@ export interface SpanFiltersBarProps {
 const STATUS_CODES: readonly string[] = ['ALL', 'SUCCESS', 'PARAMETER_ERROR', 'TIMEOUT', 'AUTH_DENIED', 'MODEL_REFUSAL', 'ASSERTION_FAILED'];
 
 export function SpanFiltersBar({ events, filters, onChange }: SpanFiltersBarProps): React.ReactElement {
-  const entityTypes = ['ALL', ...Array.from(new Set(events.map(e => e.entityType).filter(Boolean)))];
+  const hasUnset = events.some(e => !e.entityType);
+  const knownTypes = Array.from(new Set(events.map(e => e.entityType).filter(Boolean))) as string[];
+  const entityTypes = ['ALL', ...knownTypes, ...(hasUnset ? ['system (unassigned)'] : [])];
   const eventTypes = ['ALL', ...Array.from(new Set(events.map(e => e.eventType).filter(Boolean)))];
 
   const update = (partial: Partial<SpanFilters>) => onChange({ ...filters, ...partial });

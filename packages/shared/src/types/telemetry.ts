@@ -13,7 +13,7 @@ export interface TelemetryEvent {
   readonly appKey: string;
   readonly sessionId: string;
   readonly entityId: string;
-  readonly entityType: EntityType;
+  readonly entityType?: EntityType;
   readonly clientString?: string;
   readonly eventType: string;
   readonly multiagentIdentity?: string;

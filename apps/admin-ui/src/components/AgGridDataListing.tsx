@@ -78,7 +78,13 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
     const q = filters.search.toLowerCase().trim();
     return events.filter(evt => {
       if (filters.statusCode !== 'ALL' && (evt.statusCode || 'SUCCESS') !== filters.statusCode) return false;
-      if (filters.entityType !== 'ALL' && evt.entityType !== filters.entityType) return false;
+      if (filters.entityType !== 'ALL') {
+        if (filters.entityType === 'system (unassigned)') {
+          if (evt.entityType) return false;
+        } else if (evt.entityType !== filters.entityType) {
+          return false;
+        }
+      }
       if (filters.eventType !== 'ALL' && evt.eventType !== filters.eventType) return false;
       if (q) {
         const haystack = [
@@ -144,7 +150,23 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
       { field: 'documentVisibilityState', headerName: 'Visibility', sortable: true, filter: true, width: 110, valueFormatter: p => p.value || 'visible' },
       { field: 'multiagentIdentity', headerName: 'Orchestrator ID', sortable: true, filter: true, width: 180 },
       { field: 'entityId', headerName: 'Entity / User ID', sortable: true, filter: true, width: 180 },
-      { field: 'entityType', headerName: 'Type', sortable: true, filter: true, width: 90 },
+      {
+        field: 'entityType',
+        headerName: 'Type',
+        sortable: true,
+        filter: true,
+        width: 100,
+        cellRenderer: (params: { value?: string }) => {
+          const type = params.value;
+          if (type === 'agent') {
+            return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-cyan-950/70 text-cyan-300 border border-cyan-800/50">agent</span>;
+          }
+          if (type === 'human') {
+            return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-800/50">human</span>;
+          }
+          return <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-purple-950/40 text-purple-400 border border-purple-900/30">system</span>;
+        }
+      },
       { field: 'eventType', headerName: 'Event Type', sortable: true, filter: true, width: 120 },
       { field: 'invokedToolName', headerName: 'Invoked Tool / Page', sortable: true, filter: true, width: 180 },
       { field: 'previousToolName', headerName: 'Previous Tool / Path', sortable: true, filter: true, width: 160 },

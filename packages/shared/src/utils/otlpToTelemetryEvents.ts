@@ -161,7 +161,9 @@ export function otlpToTelemetryEvents(payload: OtlpPayload): readonly TelemetryE
 
         const rawUserType = (combinedAttrs['user.type'] || combinedAttrs['user_type'] || combinedAttrs['entity_type'] || combinedAttrs['entityType']) as string | undefined;
         const eventType = (combinedAttrs['app.event_type'] || combinedAttrs['event_type'] || combinedAttrs['eventType'] || (invokedToolName === 'documentLoad' ? 'page_view' : (invokedToolName ? 'tool_call' : 'llm_inference'))) as string;
-        const entityType = rawUserType === 'human' || eventType === 'page_view' || invokedToolName === 'documentLoad' ? 'human' : (rawUserType === 'agent' ? 'agent' : 'agent');
+        const entityType = rawUserType === 'human' || eventType === 'page_view' || invokedToolName === 'documentLoad'
+          ? 'human'
+          : (rawUserType === 'agent' ? 'agent' : undefined);
 
         let statusCode: EventStatusCode | undefined;
         if (combinedAttrs['status_code'] && typeof combinedAttrs['status_code'] === 'string') {
