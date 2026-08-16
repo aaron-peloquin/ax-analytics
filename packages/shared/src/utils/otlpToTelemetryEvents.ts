@@ -172,25 +172,30 @@ export function otlpToTelemetryEvents(payload: OtlpPayload): readonly TelemetryE
           statusCode = 'SUCCESS';
         }
 
-        const urlFull = (combinedAttrs['url.full'] || combinedAttrs['url_full'] || combinedAttrs['urlFull']) as string | undefined;
-        const urlPath = (combinedAttrs['url.path'] || combinedAttrs['url_path'] || combinedAttrs['urlPath']) as string | undefined;
-        const urlScheme = (combinedAttrs['url.scheme'] || combinedAttrs['url_scheme'] || combinedAttrs['urlScheme']) as string | undefined;
-        const documentTitle = (combinedAttrs['document.title'] || combinedAttrs['document_title'] || combinedAttrs['documentTitle']) as string | undefined;
-        const documentReferrer = (combinedAttrs['document.referrer'] || combinedAttrs['document_referrer'] || combinedAttrs['documentReferrer']) as string | undefined;
-        const documentVisibilityState = (combinedAttrs['document.visibilityState'] || combinedAttrs['document_visibility_state'] || combinedAttrs['documentVisibilityState']) as string | undefined;
-        const userAgent = (combinedAttrs['user_agent.original'] || combinedAttrs['user_agent'] || combinedAttrs['userAgent']) as string | undefined;
-        const browserPlatform = (combinedAttrs['browser.platform'] || combinedAttrs['browser_platform'] || combinedAttrs['browserPlatform']) as string | undefined;
-        const browserMobile = (combinedAttrs['browser.mobile'] ?? combinedAttrs['browser_mobile'] ?? combinedAttrs['browserMobile']) as boolean | undefined;
-        const deviceCategory: 'mobile' | 'desktop' | undefined = browserMobile !== undefined ? (browserMobile ? 'mobile' : 'desktop') : undefined;
-        const browserBrands = (combinedAttrs['browser.brands'] || combinedAttrs['browser_brands'] || combinedAttrs['browserBrands']) as readonly string[] | undefined;
+        const isWebEvent = eventType === 'page_view' || invokedToolName === 'documentLoad' || rawUserType === 'human';
+
+        const urlFull = isWebEvent ? ((combinedAttrs['url.full'] || combinedAttrs['url_full'] || combinedAttrs['urlFull']) as string | undefined) : undefined;
+        const urlPath = isWebEvent ? ((combinedAttrs['url.path'] || combinedAttrs['url_path'] || combinedAttrs['urlPath']) as string | undefined) : undefined;
+        const urlScheme = isWebEvent ? ((combinedAttrs['url.scheme'] || combinedAttrs['url_scheme'] || combinedAttrs['urlScheme']) as string | undefined) : undefined;
+        const documentTitle = isWebEvent ? ((combinedAttrs['document.title'] || combinedAttrs['document_title'] || combinedAttrs['documentTitle']) as string | undefined) : undefined;
+        const documentReferrer = isWebEvent ? ((combinedAttrs['document.referrer'] || combinedAttrs['document_referrer'] || combinedAttrs['documentReferrer']) as string | undefined) : undefined;
+        const documentVisibilityState = isWebEvent ? ((combinedAttrs['document.visibilityState'] || combinedAttrs['document_visibility_state'] || combinedAttrs['documentVisibilityState']) as string | undefined) : undefined;
+        const userAgent = isWebEvent ? ((combinedAttrs['user_agent.original'] || combinedAttrs['user_agent'] || combinedAttrs['userAgent']) as string | undefined) : undefined;
+        const browserPlatform = isWebEvent ? ((combinedAttrs['browser.platform'] || combinedAttrs['browser_platform'] || combinedAttrs['browserPlatform']) as string | undefined) : undefined;
+        const browserMobile = isWebEvent ? ((combinedAttrs['browser.mobile'] ?? combinedAttrs['browser_mobile'] ?? combinedAttrs['browserMobile']) as boolean | undefined) : undefined;
+        const deviceCategory: 'mobile' | 'desktop' | undefined = isWebEvent && browserMobile !== undefined ? (browserMobile ? 'mobile' : 'desktop') : undefined;
+        const browserBrands = isWebEvent ? ((combinedAttrs['browser.brands'] || combinedAttrs['browser_brands'] || combinedAttrs['browserBrands']) as readonly string[] | undefined) : undefined;
         const userId = (combinedAttrs['user.id'] || combinedAttrs['user_id'] || combinedAttrs['userId']) as string | undefined;
         
-        const isEntrypointPageRaw = combinedAttrs['is_entrypoint_page'] ?? combinedAttrs['isEntrypointPage'];
-        const isEntrypointPage = typeof isEntrypointPageRaw === 'boolean' 
-          ? isEntrypointPageRaw 
-          : (!documentReferrer || !documentReferrer.includes(urlPath || '____nonexistent____') && !documentReferrer.startsWith('http://localhost') && !documentReferrer.startsWith('https://example.com'));
+        let isEntrypointPage: boolean | undefined = undefined;
+        if (isWebEvent) {
+          const isEntrypointPageRaw = combinedAttrs['is_entrypoint_page'] ?? combinedAttrs['isEntrypointPage'];
+          isEntrypointPage = typeof isEntrypointPageRaw === 'boolean' 
+            ? isEntrypointPageRaw 
+            : (!documentReferrer || (!documentReferrer.includes(urlPath || '____nonexistent____') && !documentReferrer.startsWith('http://localhost') && !documentReferrer.startsWith('https://example.com')));
+        }
 
-        const previousUrlPath = (combinedAttrs['previous_url_path'] || combinedAttrs['previousUrlPath'] || previousToolName) as string | undefined;
+        const previousUrlPath = isWebEvent ? ((combinedAttrs['previous_url_path'] || combinedAttrs['previousUrlPath']) as string | undefined) : undefined;
 
         const event: TelemetryEvent = {
           timestamp: new Date().toISOString(),

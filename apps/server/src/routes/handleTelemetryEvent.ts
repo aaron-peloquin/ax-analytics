@@ -19,14 +19,31 @@ export function handleTelemetryEvent(clickhouseStore: ClickhouseStore) {
 
     const entityId = (raw.entityId || raw.entity_id) as string;
     const appKey = (raw.appKey || raw.app_key) as string || 'adm_live_8832109';
+    const eventType = (raw.eventType || raw.event_type || 'tool_call') as string;
+    const isWebEvent = eventType === 'page_view' || raw.invokedToolName === 'documentLoad';
 
     const event: TelemetryEvent = {
       ...(raw as unknown as TelemetryEvent),
       sessionId,
       entityId,
       appKey,
-      entityType: (raw.entityType as 'human' | 'agent' | undefined) || undefined,
-      timestamp: (raw.timestamp as string) || new Date().toISOString()
+      eventType,
+      entityType: (raw.entityType as 'human' | 'agent' | undefined) || (isWebEvent ? 'human' : undefined),
+      timestamp: (raw.timestamp as string) || new Date().toISOString(),
+      ...(isWebEvent ? {} : {
+        isEntrypointPage: undefined,
+        urlFull: undefined,
+        urlPath: undefined,
+        urlScheme: undefined,
+        documentTitle: undefined,
+        documentReferrer: undefined,
+        documentVisibilityState: undefined,
+        browserPlatform: undefined,
+        browserMobile: undefined,
+        browserBrands: undefined,
+        deviceCategory: undefined,
+        previousUrlPath: undefined
+      })
     };
 
     clickhouseStore.pushEvent(event);

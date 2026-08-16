@@ -137,17 +137,32 @@ export function AgGridDataListing({ events }: AgGridDataListingProps): React.Rea
         sortable: true,
         filter: true,
         width: 120,
-        cellRenderer: (params: { value?: boolean }) => {
+        cellRenderer: (params: { value?: boolean; data?: TelemetryEvent }) => {
+          if (params.data?.eventType !== 'page_view' && params.value === undefined) {
+            return <span className="text-purple-600 font-mono text-xs">—</span>;
+          }
           return params.value ? (
             <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
               Initial Load
             </span>
           ) : (
-            <span className="px-2 py-0.5 rounded text-xs text-purple-400">SPA Nav</span>
+            <span className="px-2 py-0.5 rounded text-xs text-purple-400 font-medium">SPA Nav</span>
           );
         }
       },
-      { field: 'documentVisibilityState', headerName: 'Visibility', sortable: true, filter: true, width: 110, valueFormatter: p => p.value || 'visible' },
+      {
+        field: 'documentVisibilityState',
+        headerName: 'Visibility',
+        sortable: true,
+        filter: true,
+        width: 110,
+        cellRenderer: (params: { value?: string; data?: TelemetryEvent }) => {
+          if (params.data?.eventType !== 'page_view' && !params.value) {
+            return <span className="text-purple-600 font-mono text-xs">—</span>;
+          }
+          return <span className="text-purple-200 text-xs font-mono">{params.value || 'visible'}</span>;
+        }
+      },
       { field: 'multiagentIdentity', headerName: 'Orchestrator ID', sortable: true, filter: true, width: 180 },
       { field: 'entityId', headerName: 'Entity / User ID', sortable: true, filter: true, width: 180 },
       {
