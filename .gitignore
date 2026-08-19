@@ -1,7 +1,16 @@
 node_modules
 dist
+build
+*.tsbuildinfo
+.pnpm-store
 .nx/cache
 .nx/workspace-data
 .env
+.env.local
+.env.*.local
 *.log
+npm-debug.log*
+pnpm-debug.log*
 data/
+.DS_Store
+Thumbs.db

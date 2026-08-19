@@ -9,3 +9,6 @@ export * from './utils/extractUrlParams.js';
 export * from './utils/resolveTargetUrl.js';
 export * from './utils/sanitizeHeaders.js';
 export * from './utils/mcpProxyClient.js';
+export * from './utils/parseAttributeValue.js';
+export * from './utils/extractAttributeMap.js';
+export * from './utils/calculateMsDuration.js';

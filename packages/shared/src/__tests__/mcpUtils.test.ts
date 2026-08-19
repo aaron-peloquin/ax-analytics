@@ -4,7 +4,7 @@ import { resolveTargetUrl } from '../utils/resolveTargetUrl.js';
 import { sanitizeHeaders } from '../utils/sanitizeHeaders.js';
 import { createMcpProxyClient } from '../utils/mcpProxyClient.js';
 
-export function runMcpUtilsTest(): void {
+export async function runMcpUtilsTest(): Promise<void> {
   console.log('🧪 Testing MCP Utilities...');
 
   // 1. Test extractUrlParams
@@ -62,15 +62,14 @@ export function runMcpUtilsTest(): void {
     customFetch: dummyFetch
   });
 
-  client.listTools().then((res) => {
-    assert.strictEqual(res.result?.tools[0].name, 'test_tool');
-    console.log('✓ createMcpProxyClient tests passed!');
-  }).catch((err) => {
-    console.error('❌ createMcpProxyClient test failed:', err);
-    process.exit(1);
-  });
+  const res = await client.listTools();
+  assert.strictEqual(res.result?.tools[0].name, 'test_tool');
+  console.log('✓ createMcpProxyClient tests passed!');
 
   console.log('🎉 All MCP Utility Tests PASSED!');
 }
 
-runMcpUtilsTest();
+runMcpUtilsTest().catch((err) => {
+  console.error('❌ MCP Utility test failed:', err);
+  process.exit(1);
+});
